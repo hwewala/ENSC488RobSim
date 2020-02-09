@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 	const int ESC = 27;
 	
 	printf("1Press any key to continue \n");
-	printf("2Press ESC to exit \n");
+	printf("2Press ESC to exit  \n");
 
 	c = _getch() ;
 
