@@ -28,6 +28,9 @@ vector<float> ITOU(vector<vector<float>> R) {
     // Input: R (rotation matrix)
     // Output: (x, y) coordinate
     float theta = acosf(R[0][0]);
+    float c_theta = cosf(theta);
+    float s_theta = sinf(theta);
+    float t_theta = tanf(theta);
 
     // help
 
@@ -56,13 +59,12 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
             float sum = 0;
             for(int k = 0; k < N; k++) {
                 // do matrix calculations
-                vec2.push_back(brela[j][k]*crelb[k][j]);
+                vec2.push_back(brela[i][k]*crelb[k][j]);
                 sum = sum_vec(vec2);
-            }            
+            }
             vec1.push_back(sum);
         }
         crela.push_back(vec1);
     }
     return crela;
-}
-
+}   

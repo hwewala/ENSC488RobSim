@@ -14,11 +14,11 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	vector<vector<float>> mat1 = UTOI(1, 1);
+	vector<vector<float>> mat1 = UTOI(3, 1);
 	printf("Matrix 1:\n");
 	print_mat(mat1);
-	vector<vector<float>> mat2 = UTOI(1, 1);
-	printf("Matrix 1:\n");
+	vector<vector<float>> mat2 = UTOI(1, 2);
+	printf("Matrix 2:\n");		
 	print_mat(mat2);
 	vector<vector<float>> result = TMULT(mat1, mat2);
 	printf("Result: \n");
