@@ -4,6 +4,7 @@
 void print_mat(vector<vector<float>> mat) {
     // Assume 3x3 matrix
     int N = 3;
+    printf("Matrix: \n");
     for(int i = 0; i < N; i++) {
         print_vec(mat[i]);
     }

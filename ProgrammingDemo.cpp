@@ -14,8 +14,15 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	vector<vector<float>> mat = UTOI(1, 1);
-	print_mat(mat);
+	vector<vector<float>> mat1 = UTOI(1, 1);
+	printf("Matrix 1:\n");
+	print_mat(mat1);
+	vector<vector<float>> mat2 = UTOI(1, 1);
+	printf("Matrix 1:\n");
+	print_mat(mat2);
+	vector<vector<float>> result = TMULT(mat1, mat2);
+	printf("Result: \n");
+	print_mat(result);
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};

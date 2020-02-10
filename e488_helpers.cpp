@@ -3,8 +3,10 @@
 // User form TO Internal form
 vector<vector<float>> UTOI(float x, float y) {
     // We want to allow the user to specify a frame as a 3-tuple (x, y, z)
-    // Assume only dealing with 3x3 matrices
+    // Assume 3x3 matrix
     // Assume all rotations are around Z-axis
+    // Input: (x, y) coordinate
+    // Output: R (rotation matrix)
     float theta = atan2f(y, x);
     float s_theta = sinf(theta);
     float c_theta = cosf(theta);
@@ -20,9 +22,21 @@ vector<vector<float>> UTOI(float x, float y) {
 
 // Internal form TO User form
 vector<float> ITOU(vector<vector<float>> R) {
-    // user will specify a 3x3 rotation matrix, and will output (x, y, theta)
-    vector<float> result;
-    return result;
+    // user will specify a 3x3 rotation matrix, and will output (x, y, z)
+    // Assume 3x3 matrix
+    // Assume all rotations are around Z-axis
+    // Input: R (rotation matrix)
+    // Output: (x, y) coordinate
+    float theta = acosf(R[0][0]);
+
+    // help
+
+    float x;
+    float y;
+
+    vector<float> coord;
+
+    return coord;
 }
 
 
