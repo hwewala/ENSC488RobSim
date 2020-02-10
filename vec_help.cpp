@@ -10,10 +10,10 @@ float det_mat(vector<vector<float>> mat) {
         // cycle through the values in the top row
         int r = 0;
         float val = mat[r][i];
-        vector<vector<float>> mat1 = minor_mat(mat, r, i);
+        vector<vector<float>> min_mat = minor_mat(mat, r, i);
        
         // determinant of 2x2 matrix: ad - bc
-        float ad_bc = det_mat2(mat1);
+        float ad_bc = det_mat2(min_mat);
         float res = val*ad_bc;
         if(i % 2 != 0) {
             res = -res;
