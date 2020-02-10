@@ -15,15 +15,16 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	vector<vector<float>> mat1 = UTOI(1, 2);
 	vector<float> r1{10, 5, 3};
 	vector<float> r2{3, 12, 4};
 	vector<float> r3{6, 1, 2};
 	vector<vector<float>> test_mat{r1, r2, r3};
 	printf("Matrix 1:\n");
 	print_mat(test_mat);
-	float det = det_mat(test_mat);
-	printf("determinant: %f\n", det);
+
+	vector<vector<float>> inv = inv_mat(test_mat);
+	printf("Inverse Matrix:\n");
+	print_mat(inv);
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};
