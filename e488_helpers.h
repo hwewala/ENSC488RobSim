@@ -16,3 +16,6 @@ vector<float> ITOU(vector<vector<float>> R);
 
 // Transform MULTiplication
 vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> crelb);
+
+// Invert Matrix
+void TINVERT(vector<vector<float>> mat);

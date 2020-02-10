@@ -9,20 +9,21 @@
 #include <string>
 
 #include "e488_helpers.h"
+#include "vec_help.h"
 
 using namespace std;
 
 int main(int argc, char* argv[])
 {
-	vector<vector<float>> mat1 = UTOI(3, 1);
+	vector<vector<float>> mat1 = UTOI(1, 2);
+	vector<float> r1{10, 5, 3};
+	vector<float> r2{3, 12, 4};
+	vector<float> r3{6, 1, 2};
+	vector<vector<float>> test_mat{r1, r2, r3};
 	printf("Matrix 1:\n");
-	print_mat(mat1);
-	vector<vector<float>> mat2 = UTOI(1, 2);
-	printf("Matrix 2:\n");		
-	print_mat(mat2);
-	vector<vector<float>> result = TMULT(mat1, mat2);
-	printf("Result: \n");
-	print_mat(result);
+	print_mat(test_mat);
+	float det = det_mat(test_mat);
+	printf("determinant: %f\n", det);
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};

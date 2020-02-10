@@ -5,6 +5,8 @@
 
 using namespace std;
 
+// finds the determinant of a matrix
+float det_mat(vector<vector<float>> mat);
 
 // print a matrix
 void print_mat(vector<vector<float>> mat);
