@@ -7,10 +7,16 @@
 #include "ensc-488.h"
 #include <iostream>
 #include <string>
+
+#include "e488_helpers.h"
+
 using namespace std;
 
 int main(int argc, char* argv[])
 {
+	vector<vector<float>> mat = UTOI(1, 1);
+	print_mat(mat);
+
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};
 	printf("Keep this window in focus, and...\n");
@@ -51,10 +57,6 @@ int main(int argc, char* argv[])
 		}
 		else
 			break;
-			
-		
 	}
-	
-
 	return 0;
 }

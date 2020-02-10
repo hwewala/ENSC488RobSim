@@ -1,5 +1,15 @@
 #include "vec_help.h"
 
+// prints the matrix
+void print_mat(vector<vector<float>> mat) {
+    // Assume 3x3 matrix
+    int N = 3;
+    for(int i = 0; i < N; i++) {
+        print_vec(mat[i]);
+    }
+}
+
+// prints all elements in a vector
 void print_vec(vector<float> vec) {
     int N = size(vec);
     vector<string> vec_str;
@@ -13,6 +23,8 @@ void print_vec(vector<float> vec) {
     printf("]\n");
 }
 
+
+// sums all elements in a vector
 float sum_vec(vector<float> vec) {
     // sum the elements in a vector
     int N = size(vec);

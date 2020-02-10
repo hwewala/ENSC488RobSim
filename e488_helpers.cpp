@@ -2,12 +2,20 @@
 
 // User form TO Internal form
 vector<vector<float>> UTOI(float x, float y) {
-	// user will specify (x, y)
-    // we want to allow the user to specify a frame as a 3-tuple (x, y, theta)
-    float theta = atan2(y, x) * 180/PI;
-    vector<vector<float>> result;
+    // We want to allow the user to specify a frame as a 3-tuple (x, y, z)
+    // Assume only dealing with 3x3 matrices
+    // Assume all rotations are around Z-axis
+    float theta = atan2f(y, x);
+    float s_theta = sinf(theta);
+    float c_theta = cosf(theta);
 
-    return result;
+    vector<float> r1{c_theta, -s_theta, 0};
+    vector<float> r2{s_theta, c_theta, 0};
+    vector<float> r3{0, 0, 1};
+    
+    vector<vector<float>> R{r1, r2, r3};
+
+    return R;
 }
 
 // Internal form TO User form
