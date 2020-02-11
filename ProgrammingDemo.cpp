@@ -19,12 +19,12 @@ int main(int argc, char* argv[])
 	vector<float> r2{3, 12, 4};
 	vector<float> r3{6, 1, 2};
 	vector<vector<float>> test_mat{r1, r2, r3};
-	printf("Matrix 1:\n");
-	print_mat(test_mat);
 
-	vector<vector<float>> inv = inv_mat(test_mat);
-	printf("Inverse Matrix:\n");
-	print_mat(inv);
+	vector<vector<float>> mat = UTOI(1.235, 1.432);
+	print_mat(mat);
+	vector<float> unit_vec = ITOU(mat);
+	print_vec(unit_vec);
+
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};
