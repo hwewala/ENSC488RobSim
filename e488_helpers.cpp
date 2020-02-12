@@ -28,6 +28,7 @@ vector<float> ITOU(vector<vector<float>> R) {
     Input: R (rotation matrix)
     Output: (x, y, z) coordinate */
 
+    // DEBUG: I think this is still wront
     // following equations 2.81 and 2.82 in the text
 
     vector<float> unit_vec{ R[2][1] - R[1][2],
