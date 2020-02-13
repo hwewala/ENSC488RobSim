@@ -22,23 +22,21 @@ vector<vector<float>> UTOI(float x, float y) {
 
 // Internal form TO User form
 vector<float> ITOU(vector<vector<float>> R) {
-    /*user will specify a 3x3 rotation matrix, and will output (x, y, z)
+    /*user will specify a 3x3 rotation matrix, and will output (x, y)
     Assume 3x3 matrix
     Assume all rotations are around Z-axis
     Input: R (rotation matrix)
     Output: (x, y, z) coordinate */
 
-    // DEBUG: I think this is still wront
-    // following equations 2.81 and 2.82 in the text
+    // Assumes the length is 1
 
-    vector<float> unit_vec{ R[2][1] - R[1][2],
-                            R[0][2] - R[2][0],
-                            R[1][0] - R[0][1]};
-    float theta = acosf((R[0][0] + R[1][1] + R[2][2] - 1)/2);
+    float c_theta = R[0][0];
+    float theta = acosf(c_theta);
 
-    for(int i = 0; i < size(unit_vec); i++) {
-        unit_vec[i] = (1/(2*sin(theta)))*unit_vec[i];
-    }
+    float x = cosf(theta);
+    float y = sinf(theta);
+
+    vector<float> unit_vec{x, y};
 
     return unit_vec;
 }
