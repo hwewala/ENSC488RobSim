@@ -57,36 +57,6 @@ vector<vector<float>> minor_mat(vector<vector<float>> mat, int r, int c) {
     return min_mat;
 }
 
-// finds the inverse of the matrix
-vector<vector<float>> inv_mat(vector<vector<float>> mat) {
-    /*Assume 3x3 matrix
-    Followed steps here: https://www.mathsisfun.com/algebra/matrix-inverse-minors-cofactors-adjugate.html
-    */
-    int N = 3;
-    float det = det_mat(mat);
-    vector<vector<float>> inv_mat;
-
-    // cycle through all the coordinates in the 3x3 matrix
-    for(int i = 0; i < N; i++) {
-        vector<float> lst_mats;
-        for(int j = 0; j < N; j++) {
-            vector<vector<float>> min_mat = minor_mat(mat, i, j);
-            float det_min = det_mat2(min_mat);
-            // play with the signs
-            if(i % 2 != 0 || j % 2 != 0) {
-                det_min = -det_min;
-            }
-            lst_mats.push_back((1/det)*det_min); // multiply by 1/det
-        }
-        inv_mat.push_back(lst_mats);
-    }
-
-    // transpose the Matrix of Cofactors
-    transpose_mat(inv_mat);
-    
-    return inv_mat;
-}
-
 // prints the matrix
 void print_mat(vector<vector<float>> mat) {
     // Assume NxN matrix

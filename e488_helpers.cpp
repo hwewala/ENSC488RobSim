@@ -68,8 +68,31 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
 }
 
 // Invert Matrix
-void TINVERT(vector<vector<float>> mat) {
+vector<vector<float>> TINVERT(vector<vector<float>> mat) {
     /* Performs the inverse of a matrix
     Assume 3x3 Matrix*/
+    int N = 3;
+    float det = det_mat(mat);
+    vector<vector<float>> inv_mat;
+
+    // cycle through all the coordinates in the 3x3 matrix
+    for(int i = 0; i < N; i++) {
+        vector<float> lst_mats;
+        for(int j = 0; j < N; j++) {
+            vector<vector<float>> min_mat = minor_mat(mat, i, j);
+            float det_min = det_mat2(min_mat);
+            // play with the signs
+            if(i % 2 != 0 || j % 2 != 0) {
+                det_min = -det_min;
+            }
+            lst_mats.push_back((1/det)*det_min); // multiply by 1/det
+        }
+        inv_mat.push_back(lst_mats);
+    }
+
+    // transpose the Matrix of Cofactors
+    transpose_mat(inv_mat);
     
+    return inv_mat;
+}
 }
