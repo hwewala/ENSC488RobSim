@@ -41,7 +41,6 @@ vector<float> ITOU(vector<vector<float>> R) {
     return unit_vec;
 }
 
-// did i change jacobw branch?!
 // T MULTiplication
 vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> crelb) {
     /* multiplies two matrices together. Assumes it's NxN matrix 
