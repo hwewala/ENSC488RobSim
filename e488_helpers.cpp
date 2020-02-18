@@ -171,13 +171,13 @@ vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, ve
     */
 
     // get wrelb
+    vector<vector<float>> wrelb = KIN(theta);
     
+    // do matrix multiplications to calculate trels = brels x wrelb x trelw
+    vector<vector<float>> wrels = TMULT(brels, wrelb); // wrels = brels x wrelb
+    vector<vector<float>> trels = TMULT(wrels, trelw); // trels = wrels x trelw
 
-
-
-
-   vector<vector<float>> trels;
-   return trels;
+    return trels;
 }
     
 
