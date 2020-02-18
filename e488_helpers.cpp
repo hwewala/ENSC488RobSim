@@ -10,13 +10,17 @@ vector<vector<float>> UTOI(float x, float y) {
     Assume 3x3 matrix
     Assume all rotations are around Z-axis
     Input: (x, y) coordinate
-    Output: R (rotation matrix)*/
+    Output: R
+    R = | cos(theta)    -sin(theta)     x |
+        | sin(theta)    cos(theta)      y |
+        | 0             0               1 |
+    */
     float theta = atan2f(y, x);
     float s_theta = sinf(theta);
     float c_theta = cosf(theta);
 
-    vector<float> r1{c_theta, -s_theta, 0};
-    vector<float> r2{s_theta, c_theta, 0};
+    vector<float> r1{c_theta, -s_theta, x};
+    vector<float> r2{s_theta, c_theta, y};
     vector<float> r3{0, 0, 1};
     
     vector<vector<float>> R{r1, r2, r3};
@@ -31,8 +35,6 @@ vector<float> ITOU(vector<vector<float>> R) {
     Assume all rotations are around Z-axis
     Input: R (rotation matrix)
     Output: (x, y, z) coordinate */
-
-    // Assumes the length is 1
 
     float c_theta = R[0][0];
     float theta = acosf(c_theta);
@@ -111,6 +113,20 @@ void KIN(vector<float> theta, vector<vector<float>> wrelb){
         - this is a 2x2 rotation matrix and a 2x1 position vector*/
 }
 
-void WHERE(vector<float> theta, vector<vector<float>> trels);
+vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, vector<vector<float>> brels) {
+    /*  Inputs: 
+            theta: joint angles
+            trelw: Tool frame WRT Wrist frame
+            brels: Base frame WRT Station frame
+        Output:
+            trels: Tool frame WRT Station frame
+    */
+
+
+
+   vector<vector<float>> trels;
+   return trels;
+}
+    
 
 // Inverse Kinematics
