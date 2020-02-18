@@ -1,5 +1,13 @@
 #include "e488_helpers.h"
 
+///////////////
+/* CONSTANTS */
+///////////////
+// lengths are in (mm)
+// angles are in (rads)
+float A1 = 195;
+float A2 = 142;
+
 ///////////////////////////////////////////////
 /* Part 1: Basic Matrix Computation Routines */
 ///////////////////////////////////////////////
@@ -122,14 +130,35 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat) {
 ///////////////////////////////////////////
 
 // Forward Kinematics
-void KIN(vector<float> theta, vector<vector<float>> wrelb){
-    /*theta: joint angles
-      wrelb: the wrist frame WRT the base frame.
-        - this is a 2x2 rotation matrix and a 2x1 position vector
+vector<vector<float>> KIN(vector<float> theta, vector<vector<float>> wrelb){
+    /*
+        Inputs:
+            theta: joint angles (theta1, theta2)
+        Output:
+            wrelb: the wrist frame WRT the base frame.
+                - this is a 2x2 rotation matrix and a 2x1 position vector
+            wrelb = | cos(phi)  -sin(phi)   x |
+                    | sin(phi)  cos(phi)    y |
+                    | 0           0         1 |   
     */
+    // rename joint angles
+    float theta1 = theta[0];
+    float theta2 = theta[1];
 
+    // calculate necessary parameters to construct wrelb
+    float x = A1*cosf(theta1) + A2*cosf(theta2);
+    float y = A1*sinf(theta1) + A2*sinf(theta2);
+    float phi = theta1+theta2;
 
-    
+    // construct rows for wrelb
+    vector<float> r1{cosf(phi), -sinf(phi), x};
+    vector<float> r2{sin(phi), cos(phi), y};
+    vector<float> r3{0, 0, 1};
+
+    // populat wrelb with rows
+    vector<vector<float>> wrelb{r1, r2, r3};
+
+    return wrelb;
 }
 
 vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, vector<vector<float>> brels) {
@@ -140,6 +169,10 @@ vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, ve
         Output:
             trels: Tool frame WRT Station frame
     */
+
+    // get 
+    
+
 
 
 

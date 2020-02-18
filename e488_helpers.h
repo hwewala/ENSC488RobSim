@@ -28,8 +28,8 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat);
 ///////////////////////////////////////////
 
 // Forward Kinematics
-void KIN(vector<float> theta, vector<vector<float>> wrelb);
+vector<vector<float>> KIN(vector<float> theta, vector<vector<float>> wrelb);
 
-void WHERE(vector<float> theta, vector<vector<float>> trels);
+vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trels);
 
 // Inverse Kinematics
