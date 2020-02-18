@@ -130,7 +130,7 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat) {
 ///////////////////////////////////////////
 
 // Forward Kinematics
-vector<vector<float>> KIN(vector<float> theta, vector<vector<float>> wrelb){
+vector<vector<float>> KIN(vector<float> theta){
     /*
         Inputs:
             theta: joint angles (theta1, theta2)
@@ -155,7 +155,7 @@ vector<vector<float>> KIN(vector<float> theta, vector<vector<float>> wrelb){
     vector<float> r2{sin(phi), cos(phi), y};
     vector<float> r3{0, 0, 1};
 
-    // populat wrelb with rows
+    // populate wrelb with rows
     vector<vector<float>> wrelb{r1, r2, r3};
 
     return wrelb;
@@ -170,7 +170,7 @@ vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, ve
             trels: Tool frame WRT Station frame
     */
 
-    // get 
+    // get wrelb
     
 
 
