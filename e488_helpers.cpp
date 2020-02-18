@@ -161,7 +161,7 @@ vector<vector<float>> KIN(vector<float> theta){
     return wrelb;
 }
 
-vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, vector<vector<float>> brels) {
+vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> brels, vector<vector<float>> trelw) {
     /*  Inputs: 
             theta: joint angles
             trelw: Tool frame WRT Wrist frame
