@@ -95,4 +95,3 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat) {
     
     return inv_mat;
 }
-}
