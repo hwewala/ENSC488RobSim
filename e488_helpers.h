@@ -7,6 +7,9 @@
 using namespace std;
 
 #define PI 3.14159265;
+///////////////////////////////////////////////
+/* Part 1: Basic Matrix Computation Routines */
+///////////////////////////////////////////////
 
 //User form TO Internal form
 vector<vector<float>> UTOI(float x, float y);
@@ -19,3 +22,14 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
 
 // Invert Matrix
 vector<vector<float>> TINVERT(vector<vector<float>> mat);
+
+///////////////////////////////////////////
+/* Part 2: Forward and Inverse Kinematics*/
+///////////////////////////////////////////
+
+// Forward Kinematics
+void KIN(vector<float> theta, vector<vector<float>> wrelb);
+
+void WHERE(vector<float> theta, vector<vector<float>> trels);
+
+// Inverse Kinematics

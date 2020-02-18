@@ -1,5 +1,9 @@
 #include "e488_helpers.h"
 
+///////////////////////////////////////////////
+/* Part 1: Basic Matrix Computation Routines */
+///////////////////////////////////////////////
+
 // User form TO Internal form
 vector<vector<float>> UTOI(float x, float y) {
     /* We want to allow the user to specify a frame as a 3-tuple (x, y, z)
@@ -95,3 +99,18 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat) {
     
     return inv_mat;
 }
+
+///////////////////////////////////////////
+/* Part 2: Forward and Inverse Kinematics*/
+///////////////////////////////////////////
+
+// Forward Kinematics
+void KIN(vector<float> theta, vector<vector<float>> wrelb){
+    /*theta: joint angles
+      wrelb: the wrist frame WRT the base frame.
+        - this is a 2x2 rotation matrix and a 2x1 position vector*/
+}
+
+void WHERE(vector<float> theta, vector<vector<float>> trels);
+
+// Inverse Kinematics
