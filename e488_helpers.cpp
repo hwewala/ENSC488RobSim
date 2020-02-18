@@ -30,21 +30,36 @@ vector<vector<float>> UTOI(float x, float y) {
 
 // Internal form TO User form
 vector<float> ITOU(vector<vector<float>> R) {
-    /*user will specify a 3x3 rotation matrix, and will output (x, y)
-    Assume 3x3 matrix
-    Assume all rotations are around Z-axis
-    Input: R (rotation matrix)
-    Output: (x, y, z) coordinate */
+    /*  user will specify a 3x3 rotation matrix, and will output (x, y, theta)
+        Assume 3x3 matrix
+        Assume all rotations are around Z-axis
+    
+        Input: R (rotation matrix)
+        R = | cos(theta)    -sin(theta)     x |
+            | sin(theta)    cos(theta)      y |
+            | 0             0               1 |
 
-    float c_theta = R[0][0];
-    float theta = acosf(c_theta);
+        Output: (x, y, theta) coordinates 
+    */
 
-    float x = cosf(theta);
-    float y = sinf(theta);
+    // old method: getting x and y using theta. 
+    // Assume length is 1
+    // float c_theta = R[0][0];
+    // float theta = acosf(c_theta);
 
-    vector<float> unit_vec{x, y};
+    // float x = cosf(theta);
+    // float y = sinf(theta);
 
-    return unit_vec;
+    // vector<float> unit_vec{x, y};
+
+    // new method: getting (x, y, theta) values from R (as defined above)
+    float x = R[0][2];
+    float y = R[1][2];
+    float theta = acosf(R[0][0]);
+
+    vector<float> vec{x, y, theta};
+
+    return vec;
 }
 
 // T MULTiplication
@@ -110,7 +125,11 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat) {
 void KIN(vector<float> theta, vector<vector<float>> wrelb){
     /*theta: joint angles
       wrelb: the wrist frame WRT the base frame.
-        - this is a 2x2 rotation matrix and a 2x1 position vector*/
+        - this is a 2x2 rotation matrix and a 2x1 position vector
+    */
+
+
+    
 }
 
 vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trelw, vector<vector<float>> brels) {
