@@ -65,7 +65,7 @@ vector<float> ITOU(vector<vector<float>> T) {
     float z = T[2][3];
     float theta = acosf(T[0][0]);
 
-    vector<float> pos{x, y, z};
+    vector<float> pos{x, y, z, theta};
 
     return pos;
 }
