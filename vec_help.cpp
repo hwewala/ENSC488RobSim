@@ -2,25 +2,41 @@
 
 // finds the determinant of a matrix
 float det_mat(vector<vector<float>> mat) {
-    /* Assume 3x3 matrix
+    /*  Description: Finds the determinant of a matrix
+        Input: 3x3 matrix, 2x2 matrix
     */
-   int N = 3;
-   vector<float> det_vals;
-   for(int i = 0; i < N; i++) {
-        // cycle through the values in the top row
-        int r = 0;
-        float val = mat[r][i];
-        vector<vector<float>> min_mat = minor_mat(mat, r, i);
-       
-        // determinant of 2x2 matrix: ad - bc
-        float ad_bc = det_mat2(min_mat);
-        float res = val*ad_bc;
-        if(i % 2 != 0) {
-            res = -res;
+   int N = size(mat);
+   float det = 0;
+   switch(N) {
+        case 2 : 
+            det = det_mat2(mat);
+            break;
+        case 3 : 
+            det = det_mat3(mat);
+            break;
+   }
+   return det;
+}
+
+// finds the determinant of a 3x3 matrix
+float det_mat3(vector<vector<float>> mat) {
+    int N = 3;
+    vector<float> det_vals;
+    for(int i = 0; i < N; i++) {
+            // cycle through the values in the top row
+            int r = 0;
+            float val = mat[r][i];
+            vector<vector<float>> min_mat = minor_mat(mat, r, i);
+        
+            // determinant of 2x2 matrix: ad - bc
+            float ad_bc = det_mat2(min_mat);
+            float res = val*ad_bc;
+            if(i % 2 != 0) {
+                res = -res;
+            }
+            det_vals.push_back(res);
         }
-        det_vals.push_back(res);
-    }
-    float det = sum_vec(det_vals); 
+        float det = sum_vec(det_vals); 
     return det;
 }
 
