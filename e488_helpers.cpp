@@ -13,61 +13,61 @@ float A2 = 142;
 ///////////////////////////////////////////////
 
 // User form TO Internal form
-vector<vector<float>> UTOI(float x, float y) {
-    /* We want to allow the user to specify a frame as a 3-tuple (x, y, z)
-    Assume 3x3 matrix
-    Assume all rotations are around Z-axis
-    Input: (x, y) coordinate
-    Output: R
-    R = | cos(theta)    -sin(theta)     x |
-        | sin(theta)    cos(theta)      y |
-        | 0             0               1 |
+vector<vector<float>> UTOI(vector<float> pos) {
+    /*
+        Assume all rotations are about Z axis
+        Input:
+            pos = (x, y, z)
+        Output:
+            T = | cos(theta)    -sin(theta)     0   x |
+                | sin(theta)    cos(theta)      0   y |
+                | 0             0               1   z |
+                | 0             0               0   1 |
     */
+
+    // get the different position values
+    float x = pos[0];
+    float y = pos[1];
+    float z = pos[2];
+
+    // calculate parameters for transformation matrix, T
     float theta = atan2f(y, x);
     float s_theta = sinf(theta);
     float c_theta = cosf(theta);
 
-    vector<float> r1{c_theta, -s_theta, x};
-    vector<float> r2{s_theta, c_theta, y};
-    vector<float> r3{0, 0, 1};
+    // populate T
+    vector<float> r1{c_theta, -s_theta, 0, x};
+    vector<float> r2{s_theta, c_theta,  0, y};
+    vector<float> r3{0,       0,        1, z};
+    vector<float> r4{0,       0,        0, 1};
     
-    vector<vector<float>> R{r1, r2, r3};
+    vector<vector<float>> T{r1, r2, r3, r4};
 
-    return R;
+    return T;
 }
 
 // Internal form TO User form
-vector<float> ITOU(vector<vector<float>> R) {
-    /*  user will specify a 3x3 rotation matrix, and will output (x, y, theta)
-        Assume 3x3 matrix
-        Assume all rotations are around Z-axis
-    
-        Input: R (rotation matrix)
-        R = | cos(theta)    -sin(theta)     x |
-            | sin(theta)    cos(theta)      y |
-            | 0             0               1 |
-
-        Output: (x, y, theta) coordinates 
+vector<float> ITOU(vector<vector<float>> T) {
+    /*  
+        Assume all rotations are around Z-axis 
+        Input:
+            T = | cos(theta)    -sin(theta)     0   x |
+                | sin(theta)    cos(theta)      0   y |
+                | 0             0               1   z |
+                | 0             0               0   1 |
+        Output:
+            pos = (x, y, z)
     */
 
-    // old method: getting x and y using theta. 
-    // Assume length is 1
-    // float c_theta = R[0][0];
-    // float theta = acosf(c_theta);
+    // getting (x, y, z) values from T (as defined above)
+    float x = T[0][3];
+    float y = T[1][3];
+    float z = T[2][3];
+    float theta = acosf(T[0][0]);
 
-    // float x = cosf(theta);
-    // float y = sinf(theta);
+    vector<float> pos{x, y, z};
 
-    // vector<float> unit_vec{x, y};
-
-    // new method: getting (x, y, theta) values from R (as defined above)
-    float x = R[0][2];
-    float y = R[1][2];
-    float theta = acosf(R[0][0]);
-
-    vector<float> vec{x, y, theta};
-
-    return vec;
+    return pos;
 }
 
 // T MULTiplication
