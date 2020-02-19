@@ -12,10 +12,10 @@ using namespace std;
 ///////////////////////////////////////////////
 
 //User form TO Internal form
-vector<vector<float>> UTOI(float x, float y);
+vector<vector<float>> UTOI(vector<float> pos);
 
 // Internal form TO User form
-vector<float> ITOU(vector<vector<float>> R);
+vector<float> ITOU(vector<vector<float>> T);
 
 // Transform MULTiplication
 vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> crelb);
