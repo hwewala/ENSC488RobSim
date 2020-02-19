@@ -72,8 +72,15 @@ vector<float> ITOU(vector<vector<float>> T) {
 
 // T MULTiplication
 vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> crelb) {
-    /* multiplies two matrices together. Assumes it's NxN matrix 
-    Output: crela, "c relative to a" */
+    /* 
+        Input: brela, crelb
+        Output: crela
+        Matrices are in the form of T
+            T = | cos(theta)    -sin(theta)     0   x |
+                | sin(theta)    cos(theta)      0   y |
+                | 0             0               1   z |
+                | 0             0               0   1 |
+    */
     vector<vector<float>> crela;
     int N = size(brela);
 
