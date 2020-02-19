@@ -14,7 +14,7 @@ float A2 = 142;
 
 // User form TO Internal form
 vector<vector<float>> UTOI(vector<float> pos) {
-    /*
+    /*  Description: User form to internal form
         Assume all rotations are about Z axis
         Input:
             pos = (x, y, z)
@@ -48,7 +48,7 @@ vector<vector<float>> UTOI(vector<float> pos) {
 
 // Internal form TO User form
 vector<float> ITOU(vector<vector<float>> T) {
-    /*  
+    /*  Description: Internal form to user form
         Assume all rotations are around Z-axis 
         Input:
             T = | cos(theta)    -sin(theta)     0   x |
@@ -72,7 +72,7 @@ vector<float> ITOU(vector<vector<float>> T) {
 
 // T MULTiplication
 vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> crelb) {
-    /* 
+    /*  Desription: Multiplies two matrices together
         Input: brela, crelb
         Output: crela
         Matrices are in the form of T
@@ -104,22 +104,30 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
 }
 
 // Invert Matrix
-vector<vector<float>> TINVERT(vector<vector<float>> mat) {
-    /* Performs the inverse of a matrix
-    Assume 3x3 Matrix*/
-    int N = 3;
-    float det = det_mat(mat);
+vector<vector<float>> TINVERT(vector<vector<float>> T) {
+    /*  Description: Performs the inverse of a 4x4 matrix
+        Input: 
+            T = | cos(theta)    -sin(theta)     0   x |
+                | sin(theta)    cos(theta)      0   y |
+                | 0             0               1   z |
+                | 0             0               0   1 |
+        Output: inverse of T
+    */
+    int N = size(T);
+    float det = det_mat(T); // NxN matrix
     vector<vector<float>> inv_mat;
 
-    // cycle through all the coordinates in the 3x3 matrix
+    // cycle through all the coordinates in the (N-1)x(N-1) matrix
     for(int i = 0; i < N; i++) {
         vector<float> lst_mats;
         for(int j = 0; j < N; j++) {
-            vector<vector<float>> min_mat = minor_mat(mat, i, j);
-            float det_min = det_mat2(min_mat);
+            vector<vector<float>> min_mat = minor_mat(T, i, j);
+            float det_min = det_mat(min_mat); // (N-1)x(N-1) matrix
+
             // play with the signs
-            if(i % 2 != 0 || j % 2 != 0) {
+            if((i+j) % 2 != 0) {
                 det_min = -det_min;
+                printf("i: %i, j: %i\n", i, j);
             }
             lst_mats.push_back((1/det)*det_min); // multiply by 1/det
         }

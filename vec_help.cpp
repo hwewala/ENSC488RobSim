@@ -3,33 +3,33 @@
 // finds the determinant of a matrix
 float det_mat(vector<vector<float>> mat) {
     /*  Description: Finds the determinant of a matrix
-        Input: 3x3 matrix, 2x2 matrix
+        Input: NxN matrix, 2x2 matrix
     */
    int N = size(mat);
-   float det = 0;
+   float det;
    switch(N) {
         case 2 : 
             det = det_mat2(mat);
             break;
-        case 3 : 
-            det = det_mat3(mat);
+        default : 
+            det = det_matN(mat);
             break;
    }
    return det;
 }
 
 // finds the determinant of a 3x3 matrix
-float det_mat3(vector<vector<float>> mat) {
-    int N = 3;
+float det_matN(vector<vector<float>> mat) {
+    int N = size(mat);
     vector<float> det_vals;
+    int r = 0;
     for(int i = 0; i < N; i++) {
             // cycle through the values in the top row
-            int r = 0;
             float val = mat[r][i];
             vector<vector<float>> min_mat = minor_mat(mat, r, i);
         
-            // determinant of 2x2 matrix: ad - bc
-            float ad_bc = det_mat2(min_mat);
+            // determinant the minor matrix
+            float ad_bc = det_mat(min_mat);
             float res = val*ad_bc;
             if(i % 2 != 0) {
                 res = -res;
@@ -52,10 +52,9 @@ float det_mat2(vector<vector<float>> mat) {
     return det;
 }
 
-// gets the minor matrix (2x2) of a matrix (3x3)
+// gets the minor matrix
 vector<vector<float>> minor_mat(vector<vector<float>> mat, int r, int c) {
-    // get the smaller, 2x2 matrix
-    int N = 3;
+    int N = size(mat);
     vector<vector<float>> min_mat;
     for(int i = 0; i < N; i++) {
         // cycle through the rows
@@ -108,11 +107,14 @@ float sum_vec(vector<float> vec) {
     return sum;
 }
 
-// transpose a 3x3 matrix
+// transpose a NxN matrix
 void transpose_mat(vector<vector<float>> &mat) {
-    int N = 3;
+    int N = size(mat);
     vector<float> r(N);
-    vector<vector<float>> temp{r, r, r};
+    vector<vector<float>> temp;
+    for(int i = 0; i < N; i++) {
+        temp.push_back(r);
+    }
     // save transposed values to a temp matrix
     for(int i = 0; i < N; i++){
         for(int j = 0; j < N; j++) {
