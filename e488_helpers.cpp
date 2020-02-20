@@ -1,7 +1,5 @@
 #include "e488_helpers.h"
 
-// helpers //
-
 // converts deg to rad
 float torad(float deg) {
     return deg*(PI/180);
@@ -144,7 +142,7 @@ vector<vector<float>> TINVERT(vector<vector<float>> T) {
 ///////////////////////////////////////////
 
 // Forward Kinematics
-vector<vector<float>> KIN(vector<float> theta){
+vector<vector<float>> KIN(vector<float> joint_vals){
     /*  Description: Computers the wrist frame WRT the base frame
         Inputs:
             theta: input joint angles (theta1, theta2, theta4)
@@ -152,10 +150,10 @@ vector<vector<float>> KIN(vector<float> theta){
             wrelb: the wrist frame WRT the base frame. 
     */
     // assign joint angles to variables
-    float theta1 = theta[0];
-    float theta2 = theta[1];
-    float d3 = theta[2];
-    float theta4 = theta[3];
+    float theta1 = joint_vals[0];
+    float theta2 = joint_vals[1];
+    float d3 = joint_vals[2];
+    float theta4 = joint_vals[3];
     float phi = theta1 + theta2 - theta4;
     
     // compute sines and cosines
@@ -173,9 +171,9 @@ vector<vector<float>> KIN(vector<float> theta){
     return wrelb;
 }
 
-vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> brels, vector<vector<float>> trelw) {
+vector<vector<float>> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vector<vector<float>> trelw) {
     /*  Inputs: 
-            theta: joint angles
+            joint_vals: joint angles
             trelw: Tool frame WRT Wrist frame
             brels: Base frame WRT Station frame
         Output:
@@ -183,7 +181,7 @@ vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> brels, ve
     */
 
     // get wrelb
-    vector<vector<float>> wrelb = KIN(theta);
+    vector<vector<float>> wrelb = KIN(joint_vals);
     
     // do matrix multiplications to calculate trels = brels x wrelb x trelw
     vector<vector<float>> wrels = TMULT(brels, wrelb); // wrels = brels x wrelb

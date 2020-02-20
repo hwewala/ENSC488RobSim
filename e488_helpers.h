@@ -6,17 +6,17 @@
 
 using namespace std;
 
-float L10 = 10;
-float L30 = 30;
-float L70 = 70;
-float L80 = 80;
-float L130 = 130;
-float L140 = 140;
-float L142 = 142;
-float L195 = 195;
-float L405 = 405;
-float L410 = 410;
-float PI = 3.14159265;
+#define L10 10
+#define L30 30
+#define L70 70
+#define L80 80
+#define L130 130
+#define L140 140
+#define L142 142
+#define L195 195
+#define L405 405
+#define L410 410
+#define PI 3.14159265
 
 // helpers //
 
@@ -44,8 +44,8 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat);
 ///////////////////////////////////////////
 
 // Forward Kinematics
-vector<vector<float>> KIN(vector<float> theta, vector<vector<float>> wrelb);
+vector<vector<float>> KIN(vector<float> joint_vals);
 
-vector<vector<float>> WHERE(vector<float> theta, vector<vector<float>> trels);
+vector<vector<float>> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vector<vector<float>> trelw);
 
 // Inverse Kinematics
