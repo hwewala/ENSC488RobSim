@@ -6,7 +6,23 @@
 
 using namespace std;
 
-#define PI 3.14159265;
+float L10 = 10;
+float L30 = 30;
+float L70 = 70;
+float L80 = 80;
+float L130 = 130;
+float L140 = 140;
+float L142 = 142;
+float L195 = 195;
+float L405 = 405;
+float L410 = 410;
+float PI = 3.14159265;
+
+// helpers //
+
+// converts deg to rad
+float torad(float deg);
+
 ///////////////////////////////////////////////
 /* Part 1: Basic Matrix Computation Routines */
 ///////////////////////////////////////////////
