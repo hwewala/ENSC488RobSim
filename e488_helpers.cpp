@@ -5,8 +5,16 @@
 ///////////////
 // lengths are in (mm)
 // angles are in (rads)
-float A1 = 195;
-float A2 = 142;
+float L10 = 10;
+float L30 = 30;
+float L70 = 70;
+float L80 = 80;
+float L130 = 130;
+float L140 = 140;
+float L142 = 142;
+float L195 = 195;
+float L405 = 405;
+float L410 = 410;
 
 ///////////////////////////////////////////////
 /* Part 1: Basic Matrix Computation Routines */
@@ -146,33 +154,31 @@ vector<vector<float>> TINVERT(vector<vector<float>> T) {
 
 // Forward Kinematics
 vector<vector<float>> KIN(vector<float> theta){
-    /*
+    /*  Description: Computers the wrist frame WRT the base frame
         Inputs:
-            theta: joint angles (theta1, theta2)
+            theta: input joint angles (theta1, theta2, theta4)
         Output:
-            wrelb: the wrist frame WRT the base frame.
-                - this is a 2x2 rotation matrix and a 2x1 position vector
-            wrelb = | cos(phi)  -sin(phi)   x |
-                    | sin(phi)  cos(phi)    y |
-                    | 0           0         1 |   
+            wrelb: the wrist frame WRT the base frame. 
     */
-    // rename joint angles
+    // assign joint angles to variables
     float theta1 = theta[0];
     float theta2 = theta[1];
+    float d3 = theta[2];
+    float theta4 = theta[3];
+    float phi = theta1 + theta2 - theta4;
+    
+    // compute sines and cosines
+    float c_phi = cosf(phi);
+    float s_phi = sinf(phi);
 
-    // calculate necessary parameters to construct wrelb
-    float x = A1*cosf(theta1) + A2*cosf(theta2);
-    float y = A1*sinf(theta1) + A2*sinf(theta2);
-    float phi = theta1+theta2;
+    // populate rows for wrelb
+    vector<float> r1{c_phi,  s_phi,  0, L142*cosf(theta1+theta2) + L195*cosf(theta1)};
+    vector<float> r2{s_phi, -c_phi,  0, L142*sinf(theta1+theta2) + L195*sinf(theta1)};
+    vector<float> r3{0,      0,     -1, L70-(L410 - d3)};
+    vector<float> r4{0,      0,      0, 1};
 
-    // construct rows for wrelb
-    vector<float> r1{cosf(phi), -sinf(phi), x};
-    vector<float> r2{sin(phi), cos(phi), y};
-    vector<float> r3{0, 0, 1};
-
-    // populate wrelb with rows
-    vector<vector<float>> wrelb{r1, r2, r3};
-
+    vector<vector<float>> wrelb{r1, r2, r3, r4};
+    
     return wrelb;
 }
 
