@@ -14,16 +14,32 @@
 using namespace std;
 
 int main(int argc, char* argv[])
-{
-	vector<float> r1{10, 5, 3};
-	vector<float> r2{3, 12, 4};
-	vector<float> r3{6, 1, 2};
-	vector<vector<float>> test_mat{r1, r2, r3};
+{	
+	// define brels
+	vector<float> in1{ 405, 0, 0 };
+	vector<vector<float>> brels = UTOI(in1);
+	printf("brels:\n");
+	print_mat(brels);
 
-	vector<vector<float>> mat = UTOI(1.235, 1.432);
-	print_mat(mat);
-	vector<float> unit_vec = ITOU(mat);
-	print_vec(unit_vec);
+	// define trelw
+	vector<float> in2{ 90, 0, 0 };
+	vector<vector<float>> trelw = UTOI(in2);
+	printf("trelw:\n");
+	print_mat(trelw);
+
+
+	float theta1 = torad(float(45));
+	float theta2 = torad(float(30));
+	float d3 = 0;
+	float theta4 = torad(float(61));
+	vector<float> input{ theta1, theta2, d3, theta4 };
+	vector<vector<float>> wrelb = KIN(input);
+	printf("wrelb: \n");
+	print_mat(wrelb);
+
+	vector<vector<float>> trels = WHERE(input, brels, trelw);
+	printf("trels: \n");
+	print_mat(trels);
 
 
 	JOINT q1 = {0, 0, -100, 0};
