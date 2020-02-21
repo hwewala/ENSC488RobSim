@@ -14,10 +14,10 @@ vector<vector<float>> UTOI(vector<float> pos) {
     /*  Description: User form to internal form
         Assume all rotations are about Z axis
         Input:
-            pos = (x, y, z)
+            pos = (x, y, z, phi)
         Output:
-            T = | cos(theta)    -sin(theta)     0   x |
-                | sin(theta)    cos(theta)      0   y |
+            T = | cos(phi)    -sin(phi)     0   x |
+                | sin(phi)    cos(phi)      0   y |
                 | 0             0               1   z |
                 | 0             0               0   1 |
     */
@@ -26,17 +26,17 @@ vector<vector<float>> UTOI(vector<float> pos) {
     float x = pos[0];
     float y = pos[1];
     float z = pos[2];
+    float phi = pos[3];
 
     // calculate parameters for transformation matrix, T
-    float theta = atan2f(y, x);
-    float s_theta = sinf(theta);
-    float c_theta = cosf(theta);
+    float s_phi = sinf(phi);
+    float c_phi = cosf(phi);
 
-    // populate T
-    vector<float> r1{c_theta, -s_theta, 0, x};
-    vector<float> r2{s_theta, c_theta,  0, y};
-    vector<float> r3{0,       0,        1, z};
-    vector<float> r4{0,       0,        0, 1};
+    // populate transfomation matrix
+    vector<float> r1{c_phi, -s_phi, 0, x};
+    vector<float> r2{s_phi, c_phi,  0, y};
+    vector<float> r3{0,       0,    1, z};
+    vector<float> r4{0,       0,    0, 1};
     
     vector<vector<float>> T{r1, r2, r3, r4};
 
@@ -48,21 +48,21 @@ vector<float> ITOU(vector<vector<float>> T) {
     /*  Description: Internal form to user form
         Assume all rotations are around Z-axis 
         Input:
-            T = | cos(theta)    -sin(theta)     0   x |
-                | sin(theta)    cos(theta)      0   y |
-                | 0             0               1   z |
-                | 0             0               0   1 |
+            T = | cos(phi)    -sin(phi)     0   x |
+                | sin(phi)    cos(phi)      0   y |
+                | 0             0           1   z |
+                | 0             0           0   1 |
         Output:
-            pos = (x, y, z)
+            pos = (x, y, z, phi)
     */
 
     // getting (x, y, z) values from T (as defined above)
     float x = T[0][3];
     float y = T[1][3];
     float z = T[2][3];
-    float theta = acosf(T[0][0]);
+    float phi = acosf(T[0][0]);
 
-    vector<float> pos{x, y, z, theta};
+    vector<float> pos{x, y, z, phi};
 
     return pos;
 }
@@ -73,10 +73,10 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
         Input: brela, crelb
         Output: crela
         Matrices are in the form of T
-            T = | cos(theta)    -sin(theta)     0   x |
-                | sin(theta)    cos(theta)      0   y |
-                | 0             0               1   z |
-                | 0             0               0   1 |
+            T = | cos(phi)    -sin(phi) 0   x |
+                | sin(phi)    cos(phi)  0   y |
+                | 0             0       1   z |
+                | 0             0       0   1 |
     */
     vector<vector<float>> crela;
     int N = size(brela);
@@ -104,10 +104,10 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
 vector<vector<float>> TINVERT(vector<vector<float>> T) {
     /*  Description: Performs the inverse of a 4x4 matrix
         Input: 
-            T = | cos(theta)    -sin(theta)     0   x |
-                | sin(theta)    cos(theta)      0   y |
-                | 0             0               1   z |
-                | 0             0               0   1 |
+            T = | cos(phi)    -sin(phi) 0   x |
+                | sin(phi)    cos(phi)  0   y |
+                | 0             0       1   z |
+                | 0             0       0   1 |
         Output: inverse of T
     */
     int N = size(T);
@@ -171,13 +171,13 @@ vector<vector<float>> KIN(vector<float> joint_vals){
     return wrelb;
 }
 
-vector<vector<float>> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vector<vector<float>> trelw) {
+vector<float> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vector<vector<float>> trelw) {
     /*  Inputs: 
             joint_vals: joint angles
             trelw: Tool frame WRT Wrist frame
             brels: Base frame WRT Station frame
         Output:
-            trels: Tool frame WRT Station frame
+            position of wrist (x, y, z, phi) with respect to the station frame
     */
 
     // get wrelb
@@ -187,10 +187,13 @@ vector<vector<float>> WHERE(vector<float> joint_vals, vector<vector<float>> brel
     vector<vector<float>> wrels = TMULT(brels, wrelb); // wrels = brels x wrelb
     vector<vector<float>> trels = TMULT(wrels, trelw); // trels = wrels x trelw
 
-    return trels;
+    vector<float> pos = ITOU(trels);
+
+    return pos;
 }
     
 // Inverse Kinematics
+// Given a frame, finds the appropriate joint values
 void INVKIN(vector<vector<float>> wrelb, vector<float> joint_vals, vector<float> &near, vector<float> &far, bool &sol){
     /*  Description: Finds the inverse kinematics of the robot
         Inputs:
@@ -200,6 +203,9 @@ void INVKIN(vector<vector<float>> wrelb, vector<float> joint_vals, vector<float>
             near: nearest solution
             far: second solution
             sol: determines if there is even a solution
+        
+        TODO:
+            find the nearest solution, by calculating the difference from the current position
     */
     // get relevant values
     float x = wrelb[0][3];
@@ -240,4 +246,16 @@ void INVKIN(vector<vector<float>> wrelb, vector<float> joint_vals, vector<float>
         near.push_back(vp[i]);
         far.push_back(vn[i]);
     }
+}
+
+// Given trels and brels, finds trelw
+void SOLVE(vector<vector<float>> trels, vector<vector<float>> srelb, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol) {
+    /*
+        Inputs:
+            trels: Tool frame WRT Station frame
+            srelb: Station frame WRT Base frame
+        Ouptuts:
+        TODO:
+
+    */
 }
