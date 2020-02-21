@@ -49,3 +49,4 @@ vector<vector<float>> KIN(vector<float> joint_vals);
 vector<vector<float>> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vector<vector<float>> trelw);
 
 // Inverse Kinematics
+void INVKIN(vector<vector<float>> wrelb, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol);

@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 	print_mat(brels);
 
 	// define trelw
-	vector<float> in2{ 90, 0, 0 };
+	vector<float> in2{ 60, 0, 0 };
 	vector<vector<float>> trelw = UTOI(in2);
 	printf("trelw:\n");
 	print_mat(trelw);
@@ -41,6 +41,16 @@ int main(int argc, char* argv[])
 	printf("trels: \n");
 	print_mat(trels);
 
+	vector<float> near;
+	vector<float> far;
+	bool sol;
+	INVKIN(wrelb, input, near, far, sol);
+	vector<vector<float>> test_mat1 = KIN(near);
+	vector<vector<float>> test_mat2 = KIN(far);
+	printf("test_mat1\n");
+	print_mat(test_mat1);
+	printf("test_mat2\n");
+	print_mat(test_mat2);
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};

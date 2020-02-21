@@ -190,5 +190,54 @@ vector<vector<float>> WHERE(vector<float> joint_vals, vector<vector<float>> brel
     return trels;
 }
     
-
 // Inverse Kinematics
+void INVKIN(vector<vector<float>> wrelb, vector<float> joint_vals, vector<float> &near, vector<float> &far, bool &sol){
+    /*  Description: Finds the inverse kinematics of the robot
+        Inputs:
+            wrelb: Wrist frame WRT Base frame
+            curr_pos: current position of the robot (ie. joint values)
+        Outputs: (pass these as inputs b/c we don't want all of them to have the same type)
+            near: nearest solution
+            far: second solution
+            sol: determines if there is even a solution
+    */
+    // get relevant values
+    float x = wrelb[0][3];
+    float y = wrelb[1][3];
+    float z = wrelb[2][3];
+    float c_phi = wrelb[0][0];
+    float s_phi = wrelb[0][1];
+
+    // pow(base, exponent) for x^2 = pow(x, 2)
+    float c_theta2 = (pow(x, 2) + pow(y,2) - pow(L142, 2) - pow(L195, 2))/(2*L142*L195);
+    float s_theta2 = sqrt(1 - pow(c_theta2, 2));
+    float theta2_p = atan2f(s_theta2, c_theta2);
+    float theta2_n = atan2f(-s_theta2, c_theta2);
+
+    // compute k's for theta1
+    float k1_p = L195 + L142*cosf(theta2_p);
+    float k2_p = L142*sinf(theta2_p);
+
+    float k1_n = L195 + L142*cosf(theta2_n);
+    float k2_n = L142*sinf(theta2_n);
+
+    float gamma = atan2f(y,x);
+    float theta1_p = gamma - atan2f(k2_p, k1_p);
+    float theta1_n = gamma - atan2f(k2_n, k1_n);
+
+    // compute theta4, phi = theta1 + theta2 - theta4, theta4 = theta1 + theta2 - phi
+    float phi = atan2f(s_phi, c_phi);
+    float theta4_p = theta1_p + theta2_p - phi;
+    float theta4_n = theta1_n + theta2_n - phi;
+
+    // compute d3
+    float d3 = z - L70 + L410;
+
+    vector<float> vp{theta1_p, theta2_p, d3, theta4_p};
+    vector<float> vn{theta1_n, theta2_n, d3, theta4_n};
+    int N = size(vp);
+    for(int i = 0; i < N; i++) {
+        near.push_back(vp[i]);
+        far.push_back(vn[i]);
+    }
+}
