@@ -266,7 +266,12 @@ void SOLVE(vector<float> tar_pos, vector<float> curr_pos) {
     printf("wrelb:\n");
     print_mat(wrelb);
 
-    // get joint values
+    // get joint values using near from INVKIN
+
+    // use WHERE to get position of t rel w
+
+    // get trelw using output of WHERE
+    
 
 
 }
