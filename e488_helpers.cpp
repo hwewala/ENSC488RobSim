@@ -44,7 +44,7 @@ vector<vector<float>> UTOI(vector<float> curr_pos) {
 }
 
 // Internal form TO User form
-vector<float> ITOU(vector<vector<float>> T) {
+vector<float> ITOU(vector<vector<float>> mat) {
     /*  Description: Internal form to user form
         Assume all rotations are around Z-axis 
         Input:
@@ -57,10 +57,10 @@ vector<float> ITOU(vector<vector<float>> T) {
     */
 
     // getting (x, y, z) values from T (as defined above)
-    float x = T[0][3];
-    float y = T[1][3];
-    float z = T[2][3];
-    float phi = acosf(T[0][0]);
+    float x = mat[0][3];
+    float y = mat[1][3];
+    float z = mat[2][3];
+    float phi = acosf(mat[0][0]);
 
     vector<float> pos{x, y, z, phi};
 
@@ -101,7 +101,7 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
 }
 
 // Invert Matrix
-vector<vector<float>> TINVERT(vector<vector<float>> T) {
+vector<vector<float>> TINVERT(vector<vector<float>> mat) {
     /*  Description: Performs the inverse of a 4x4 matrix
         Input: 
             T = | cos(phi)    -sin(phi) 0   x |
@@ -110,15 +110,15 @@ vector<vector<float>> TINVERT(vector<vector<float>> T) {
                 | 0             0       0   1 |
         Output: inverse of T
     */
-    int N = size(T);
-    float det = det_mat(T); // NxN matrix
+    int N = size(mat);
+    float det = det_mat(mat); // NxN matrix
     vector<vector<float>> inv_mat;
 
     // cycle through all the coordinates in the (N-1)x(N-1) matrix
     for(int i = 0; i < N; i++) {
         vector<float> lst_mats;
         for(int j = 0; j < N; j++) {
-            vector<vector<float>> min_mat = minor_mat(T, i, j);
+            vector<vector<float>> min_mat = minor_mat(mat, i, j);
             float det_min = det_mat(min_mat); // (N-1)x(N-1) matrix
 
             // play with the signs
@@ -144,7 +144,7 @@ vector<vector<float>> TINVERT(vector<vector<float>> T) {
 vector<vector<float>> KIN(vector<float> joint_vals){
     /*  Description: Computers the wrist frame WRT the base frame
         Inputs:
-            theta: input joint angles (theta1, theta2, theta4)
+            joint_vals: input joint angles (theta1, theta2, d3, theta4)
         Output:
             wrelb: the wrist frame WRT the base frame. 
     */
@@ -251,8 +251,7 @@ void INVKIN(vector<vector<float>> wrelb, vector<float> curr_pos, vector<float> &
 void SOLVE(vector<float> tar_pos, vector<float> curr_pos) {
     /*  Description: 
             Given a desired position (x, y, z, phi), determine the joint configuration closest to the 
-            current joint configuration closest to the current joint configuration and move the robot 
-            to that configuration
+            current joint configuration closest and move the robot to that configuration
         Inputs:
             trels: Tool frame WRT Station frame
             srelb: Station frame WRT Base frame
@@ -262,7 +261,12 @@ void SOLVE(vector<float> tar_pos, vector<float> curr_pos) {
             figure out what is happening
     */
 
+    // get wrelb
     vector<vector<float>> wrelb = UTOI(curr_pos);
     printf("wrelb:\n");
     print_mat(wrelb);
+
+    // get joint values
+
+
 }

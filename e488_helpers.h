@@ -19,6 +19,7 @@ using namespace std;
 #define PI 3.14159265
 
 #define S {0, 0, 0, 0}
+#define T {140, 0, 0, 0}
 
 // helpers //
 
@@ -33,7 +34,7 @@ float torad(float deg);
 vector<vector<float>> UTOI(vector<float> pos);
 
 // Internal form TO User form
-vector<float> ITOU(vector<vector<float>> T);
+vector<float> ITOU(vector<vector<float>> mat);
 
 // Transform MULTiplication
 vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> crelb);
