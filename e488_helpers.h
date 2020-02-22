@@ -18,6 +18,8 @@ using namespace std;
 #define L410 410
 #define PI 3.14159265
 
+#define S {0, 0, 0, 0}
+
 // helpers //
 
 // converts deg to rad
@@ -51,5 +53,5 @@ vector<float> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vecto
 // Inverse Kinematics
 void INVKIN(vector<vector<float>> wrelb, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol);
 
-void SOLVE(vector<vector<float>> trels, vector<vector<float>> srelb, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol);
+void SOLVE(vector<float> tar_pos, vector<float> curr_pos);
 

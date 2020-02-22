@@ -10,7 +10,7 @@ float torad(float deg) {
 ///////////////////////////////////////////////
 
 // User form TO Internal form
-vector<vector<float>> UTOI(vector<float> pos) {
+vector<vector<float>> UTOI(vector<float> curr_pos) {
     /*  Description: User form to internal form
         Assume all rotations are about Z axis
         Input:
@@ -18,15 +18,15 @@ vector<vector<float>> UTOI(vector<float> pos) {
         Output:
             T = | cos(phi)    -sin(phi)     0   x |
                 | sin(phi)    cos(phi)      0   y |
-                | 0             0               1   z |
-                | 0             0               0   1 |
+                | 0             0           1   z |
+                | 0             0           0   1 |
     */
 
     // get the different position values
-    float x = pos[0];
-    float y = pos[1];
-    float z = pos[2];
-    float phi = pos[3];
+    float x = curr_pos[0];
+    float y = curr_pos[1];
+    float z = curr_pos[2];
+    float phi = curr_pos[3];
 
     // calculate parameters for transformation matrix, T
     float s_phi = sinf(phi);
@@ -124,7 +124,6 @@ vector<vector<float>> TINVERT(vector<vector<float>> T) {
             // play with the signs
             if((i+j) % 2 != 0) {
                 det_min = -det_min;
-                printf("i: %i, j: %i\n", i, j);
             }
             lst_mats.push_back((1/det)*det_min); // multiply by 1/det
         }
@@ -194,11 +193,11 @@ vector<float> WHERE(vector<float> joint_vals, vector<vector<float>> brels, vecto
     
 // Inverse Kinematics
 // Given a frame, finds the appropriate joint values
-void INVKIN(vector<vector<float>> wrelb, vector<float> joint_vals, vector<float> &near, vector<float> &far, bool &sol){
+void INVKIN(vector<vector<float>> wrelb, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol){
     /*  Description: Finds the inverse kinematics of the robot
         Inputs:
             wrelb: Wrist frame WRT Base frame
-            curr_pos: current position of the robot (ie. joint values)
+            curr_pos: current position of the robot (x, y, z, phi)
         Outputs: (pass these as inputs b/c we don't want all of them to have the same type)
             near: nearest solution
             far: second solution
@@ -249,13 +248,21 @@ void INVKIN(vector<vector<float>> wrelb, vector<float> joint_vals, vector<float>
 }
 
 // Given trels and brels, finds trelw
-void SOLVE(vector<vector<float>> trels, vector<vector<float>> srelb, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol) {
-    /*
+void SOLVE(vector<float> tar_pos, vector<float> curr_pos) {
+    /*  Description: 
+            Given a desired position (x, y, z, phi), determine the joint configuration closest to the 
+            current joint configuration closest to the current joint configuration and move the robot 
+            to that configuration
         Inputs:
             trels: Tool frame WRT Station frame
             srelb: Station frame WRT Base frame
         Ouptuts:
+            the position of the tool (x, y, z, phi), from the station frame
         TODO:
-
+            figure out what is happening
     */
+
+    vector<vector<float>> wrelb = UTOI(curr_pos);
+    printf("wrelb:\n");
+    print_mat(wrelb);
 }
