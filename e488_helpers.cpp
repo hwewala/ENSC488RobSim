@@ -38,9 +38,9 @@ vector<vector<float>> UTOI(vector<float> curr_pos) {
     vector<float> r3{0,       0,    1, z};
     vector<float> r4{0,       0,    0, 1};
     
-    vector<vector<float>> T{r1, r2, r3, r4};
+    vector<vector<float>> mat{r1, r2, r3, r4};
 
-    return T;
+    return mat;
 }
 
 // Internal form TO User form
@@ -248,7 +248,7 @@ void INVKIN(vector<vector<float>> wrelb, vector<float> curr_pos, vector<float> &
 }
 
 // Given trels and brels, finds trelw
-void SOLVE(vector<float> tar_pos, vector<float> curr_pos) {
+void SOLVE(vector<float> tar_pos, vector<float> curr_pos, vector<float> &near, vector<float> &far, bool &sol) {
     /*  Description: 
             Given a desired position (x, y, z, phi), determine the joint configuration closest to the 
             current joint configuration closest and move the robot to that configuration
@@ -262,16 +262,14 @@ void SOLVE(vector<float> tar_pos, vector<float> curr_pos) {
     */
 
     // get wrelb
-    vector<vector<float>> wrelb = UTOI(curr_pos);
-    printf("wrelb:\n");
-    print_mat(wrelb);
+    vector<vector<float>> wrels = UTOI(curr_pos);
+    // get brels
+    vector<vector<float>> brels = UTOI({0,0,L405,0});
+    vector<vector<float>> srelb = TINVERT(brels);
 
-    // get joint values using near from INVKIN
+    // do trelw = srelb * wrels
+    vector<vector<float>> wrelb = TMULT(srelb, wrels);
 
-    // use WHERE to get position of t rel w
-
-    // get trelw using output of WHERE
-    
-
-
+    // find nearest solution with INVKIN
+    INVKIN(wrelb, tar_pos, near, far, sol);
 }
