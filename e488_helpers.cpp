@@ -100,6 +100,28 @@ vector<vector<float>> TMULT(vector<vector<float>> brela, vector<vector<float>> c
     return crela;
 }
 
+vector<float> TMULT(vector<float> P, vector<vector<float>> R) {
+    /*  Desription: Multiplies two matrices together
+        Input: P (3x1), R (3x3)
+        Output: P*R (3x1)
+    */
+    vector<float> P_new;
+    int N = size(P);
+
+    for(int i = 0; i < N; i++) {        
+        // iterate through the rows
+        vector<float> vec;
+        float sum = 0;
+        for(int j = 0; j < N; j++) {
+            // iterate through the columns
+            sum += P[j]*R[i][j];
+        }
+        P_new.push_back(sum);
+    }
+    return P_new;
+}
+
+
 // Invert Matrix
 vector<vector<float>> TINVERT(vector<vector<float>> mat) {
     /*  Description: Performs the inverse of a 4x4 matrix
@@ -108,30 +130,39 @@ vector<vector<float>> TINVERT(vector<vector<float>> mat) {
                 | sin(phi)    cos(phi)  0   y |
                 | 0             0       1   z |
                 | 0             0       0   1 |
-        Output: inverse of T
+        Output:
+        inv(T) = |R(A wrt B) -R(A wrt B) AP(BORG)|
+                 | 0 0 0     1                   | 
     */
-    int N = size(mat);
-    float det = det_mat(mat); // NxN matrix
-    vector<vector<float>> inv_mat;
+    int N = 3;
 
-    // cycle through all the coordinates in the (N-1)x(N-1) matrix
+    // get Rotation matrix
+    vector<vector<float>> R;
     for(int i = 0; i < N; i++) {
-        vector<float> lst_mats;
+        vector<float> r;
         for(int j = 0; j < N; j++) {
-            vector<vector<float>> min_mat = minor_mat(mat, i, j);
-            float det_min = det_mat(min_mat); // (N-1)x(N-1) matrix
-
-            // play with the signs
-            if((i+j) % 2 != 0) {
-                det_min = -det_min;
-            }
-            lst_mats.push_back((1/det)*det_min); // multiply by 1/det
+            r.push_back(mat[i][j]);
         }
-        inv_mat.push_back(lst_mats);
+        R.push_back(r);
     }
 
-    // transpose the Matrix of Cofactors
-    transpose_mat(inv_mat);
+    // invert R
+    transpose_mat(R);
+
+    // get Position vector
+    vector<float> P;
+    for(int i = 0; i < N; i++) {
+        P.push_back(mat[i][N]);
+    }
+
+    vector<float> P_new = TMULT(P, R);
+
+    // construct new matrix, T
+    vector<float> r1{R[0][0], R[0][1], R[0][2], P_new[0]};
+    vector<float> r2{R[1][0], R[1][1], R[1][2], P_new[1]};
+    vector<float> r3{R[2][0], R[2][1], R[2][2], P_new[2]};
+    vector<float> r4{0, 0, 0, 1};
+    vector<vector<float>> inv_mat{r1, r2, r3, r4};
     
     return inv_mat;
 }

@@ -18,10 +18,8 @@ float det_mat2(vector<vector<float>> mat);
 vector<vector<float>> minor_mat(vector<vector<float>> mat, int r, int c);
 
 // print a matrix
-void print_mat(vector<vector<float>> mat);
-
-// print the vector
-void print_vec(vector<float> vec);
+void print(vector<vector<float>> mat);
+void print(vector<float> vec);
 
 // sum all the elements in the vector
 float sum_vec(vector<float> vec);

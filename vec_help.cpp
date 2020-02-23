@@ -73,17 +73,17 @@ vector<vector<float>> minor_mat(vector<vector<float>> mat, int r, int c) {
 }
 
 // prints the matrix
-void print_mat(vector<vector<float>> mat) {
+void print(vector<vector<float>> mat) {
     // Assume NxN matrix
     int N = size(mat[0]);
     for(int i = 0; i < N; i++) {
-        print_vec(mat[i]);
+        print(mat[i]);
     }
     printf("\n");
 }
 
 // prints all elements in a vector
-void print_vec(vector<float> vec) {
+void print(vector<float> vec) {
     int N = size(vec);
     vector<string> vec_str;
     printf("[");
