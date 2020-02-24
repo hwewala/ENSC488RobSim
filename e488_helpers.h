@@ -26,6 +26,10 @@ using namespace std;
 
 // converts deg to rad
 float torad(float deg);
+float cosd(float deg);
+float sind(float deg);
+float acosd(float val);
+float asind(float val);
 
 ///////////////////////////////////////////////
 /* Part 1: Basic Matrix Computation Routines */

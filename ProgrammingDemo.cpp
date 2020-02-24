@@ -16,46 +16,53 @@ using namespace std;
 int main(int argc, char* argv[])
 {	
 	// define brels
-	vector<float> in1{ 405, 0, 0 };
-	vector<vector<float>> brels = UTOI(in1);
+	vector<float> pos{ 0, 0, 405, 0 }; //
+	vector<vector<float>> brels = UTOI(pos);
 	printf("brels:\n");
-	print_mat(brels);
+	print(brels);
 
 	// define trelw
-	vector<float> in2{ 60, 0, 0 };
-	vector<vector<float>> trelw = UTOI(in2);
+	vector<float> pos2{ 0, 0, 140, 0 }; //
+	vector<vector<float>> trelw = UTOI(pos2);
 	printf("trelw:\n");
-	print_mat(trelw);
+	print(trelw);
 
+	// define w rel b
+	vector<float> joint_vals{0, torad(45), 0, 0}; // theta1, theta2, d3, theta4
+	vector<vector<float>> wrelb = KIN(joint_vals);
+	printf("wrelb:\n");
+	print(wrelb);
 
-	float theta1 = torad(float(45));
-	float theta2 = torad(float(30));
-	float d3 = 0;
-	float theta4 = torad(float(61));
-	vector<float> input{ theta1, theta2, d3, theta4 };
-	vector<vector<float>> wrelb = KIN(input);
-	printf("wrelb: \n");
-	print_mat(wrelb);
-
-	vector<vector<float>> trels = WHERE(input, brels, trelw);
-	printf("trels: \n");
-	print_mat(trels);
-
-	vector<float> near;
+	// test using inv kinematics
 	vector<float> far;
-	bool sol;
-	INVKIN(wrelb, input, near, far, sol);
-	vector<vector<float>> test_mat1 = KIN(near);
-	vector<vector<float>> test_mat2 = KIN(far);
-	printf("test_mat1\n");
-	print_mat(test_mat1);
-	printf("test_mat2\n");
-	print_mat(test_mat2);
+	vector<float> near;
+	bool sol = false;
+	
+	// GetConfiguration to get current joint
+	JOINT curr_joint;
+	GetConfiguration(curr_joint);
 
-	JOINT q1 = {0, 0, -100, 0};
+	printf("Inverse KIN\n");
+	INVKIN(wrelb, curr_joint, near, far, sol);
+	printf("near: ");
+	print(near);
+	printf("\n");
+
+
+	vector<vector<float>> mat = KIN(near);
+	printf("test_mat:\n");
+	print(mat);
+
+
+	//// define t rel s
+	//vector<vector<float>> wrels = TMULT(brels, wrelb);
+	//vector<vector<float>> trels = TMULT(wrelb, trelw);
+	//printf("trels:\n");
+	//print(trels);
+
+	JOINT q1 = {0, 0, -100, 0}; // x, y, z, phi
 	JOINT q2 = {90, 90, -200, 45};
 	printf("Keep this window in focus, and...\n");
-	
 
 	char ch;
 	int c;
