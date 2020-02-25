@@ -15,43 +15,50 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {	
-	// define brels
-	vector<float> pos{ 0, 0, 405, 0 }; //
-	vector<vector<float>> brels = UTOI(pos);
-	printf("brels:\n");
-	print(brels);
+	//// define brels
+	//JOINT pos{ 0, 0, 405, 0 }; //
+	//JOINT brels[N];
 
-	// define trelw
-	vector<float> pos2{ 0, 0, 140, 0 }; //
-	vector<vector<float>> trelw = UTOI(pos2);
-	printf("trelw:\n");
-	print(trelw);
+	//brels = UTOI(pos);
+	//printf("brels:\n");
+	//print(brels);
 
-	// define w rel b
-	vector<float> joint_vals{0, torad(45), 0, 0}; // theta1, theta2, d3, theta4
-	vector<vector<float>> wrelb = KIN(joint_vals);
-	printf("wrelb:\n");
-	print(wrelb);
+	//// define trelw
+	//JOINT pos2{ 0, 0, 140, 0 }; //
+	//vector<JOINT> trelw = UTOI(pos2);
+	//printf("trelw:\n");
+	//print(trelw);
 
-	// test using inv kinematics
-	vector<float> far;
-	vector<float> near;
-	bool sol = false;
-	
-	// GetConfiguration to get current joint
-	JOINT curr_joint;
-	GetConfiguration(curr_joint);
+	//// define w rel b
+	//float theta1 = torad(45);
+	//float theta2 = torad(45);
+	//float theta4 = torad(45);
+	//float d3 = -100;
+	//vector<float> joint_vals{theta1, theta2, d3, theta4}; // theta1, theta2, d3, theta4
+	//vector<JOINT> wrelb = KIN(joint_vals);
+	//printf("wrelb:\n");
+	//print(wrelb);
 
-	printf("Inverse KIN\n");
-	INVKIN(wrelb, curr_joint, near, far, sol);
-	printf("near: ");
-	print(near);
-	printf("\n");
+	//// test using inv kinematics
+	//vector<float> far;
+	//vector<float> near;
+	//bool sol = false;
+	//
+	//// GetConfiguration to get current joint
+	///*JOINT curr_joint;
+	//GetConfiguration(curr_joint);*/
+	//vector<float> curr_joint;
+
+	//printf("Inverse KIN\n");
+	//INVKIN(wrelb, curr_joint, near, far, sol);
+	//printf("near: ");
+	//print(near);
+	//printf("\n");
 
 
-	vector<vector<float>> mat = KIN(near);
-	printf("test_mat:\n");
-	print(mat);
+	//vector<vector<float>> mat = KIN(near);
+	//printf("test_mat:\n");
+	//print(mat);
 
 
 	//// define t rel s
