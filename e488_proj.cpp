@@ -12,14 +12,19 @@ void main(void) {
 
 	int user_input;
 	bool done;
+	JOINT joint_vals, spt;
+
+	UTOI(B, brels);
+	UTOI(T, trelw);
+
 	while(true) {
 		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. Reset Robot\n 4. Exit\n");
-		printf(">>");
+		printf("Your input >> ");
 		cin >> user_input;
 
 		switch(user_input) {
 			case 1 : // Forward Kinematics
-				fwd_kin();
+				fwd_kin(joint_vals, spt);
 				break;
 			case 2 : // Inverse Kinematics 
 				inv_kin();
@@ -31,7 +36,7 @@ void main(void) {
 				return; 
 				break;
 			default : 
-				printf("Invalid input. Please try again.");
+				printf("Invalid input. Please try again.\n\n\n");
 				break;
 		}		
 	}
@@ -127,27 +132,40 @@ void main(void) {
 }
 
 // Part 0: Menu Operations
-void fwd_kin(void) {
+void fwd_kin(JOINT &joint_vals, JOINT &spt) {
 	printf("In Forward Kin!\n");
-	print(T);
 	double theta1, theta2, d3, theta4;
-	// asks the user for joint values
-	printf("Please input joint parameters:\n");
-	printf("theta1 (deg): ");
-	cin >> theta1;
-	printf("theta2 (deg): ");
-	cin >> theta2;
-	printf("d3 (mm): ");
-	cin >> d3;
-	printf("theta4 (deg): ");
-	cin >> theta4;
-
 	
+	bool valid = false;
+	while(!valid) {
+		// asks the user for joint values
+		printf("Please input joint parameters:\n");
+		printf("theta1 (deg) [-100, 100]: ");
+		cin >> theta1;
+		printf("theta2 (deg) [-150, 150]: ");
+		cin >> theta2;
+		printf("d3 (mm) [-200, -100]: ");
+		cin >> d3;
+		printf("theta4 (deg) [-150, 150]: ");
+		cin >> theta4;
 
-	printf("\n Your inputs: (%f, %f, %f, %f)\n", theta1, theta2, d3, theta4);
-	// compute forward kinematics 
+		// check joint values
+		JOINT temp{DEG2RAD(theta1), DEG2RAD(theta2), d3, DEG2RAD(theta4)};
+		pop_arr(temp, joint_vals);
+		check_joints(joint_vals, valid);
+
+		// determine if we need different joint values
+		if(!valid) {
+			printf("Invalid inputs! please try again.\n\n\n");
+		}
+	}
+	printf("\nYour inputs: [%f (rads), %f (rads), %f (mm), %f (rads)]\n\n", theta1, theta2, d3, theta4);
 
 	// report position and orientation of the tool (x, y, z, phi)
+	WHERE(joint_vals, spt);
+	printf("Position and Orientation of Tool Frame (x, y, z, phi):\n");
+	print(spt);
+	printf("\n\n\n");
 
 	return;
 }
@@ -157,8 +175,27 @@ void inv_kin(void) {
 	return;
 }
 
-bool check_joint_vals(JOINT &joint_vals) {
-	return false;
+void check_joints(JOINT &joint_vals, bool &valid) {	
+	// checks the joint values in [rads] and [mm]
+	// interpret input
+	double theta1 = joint_vals[0];
+	double theta2 = joint_vals[1];
+	double d3 = joint_vals[2];
+	double theta4 = joint_vals[3];
+
+	// define constraints
+	double theta1_cons = DEG2RAD(THETA_CONS_150);
+	double theta2_cons = DEG2RAD(THETA_CONS_100);
+	double theta4_cons = DEG2RAD(THETA_CONS_150);
+
+	// check theta1 with THETA_CONS_150
+	bool theta1_valid = (theta1 <= theta1_cons && theta1 >= -theta1_cons);
+	bool theta2_valid = (theta2 <= theta2_cons && theta2 >= -theta2_cons);
+	bool d3_valid = (d3 <= D3UPPER_100 && d3 >= D3LOWER_200);
+	bool theta4_valid = (theta4 <= theta4_cons && theta4 >= -theta4_cons);
+
+	// check to see if the inputs are valid
+	valid = theta1_valid && theta2_valid && d3_valid && theta4_valid;
 }
 
 // Part 1: Basic Matrix Transformation Procedures
@@ -298,7 +335,7 @@ void KIN(JOINT &joint_vals, TFORM &wrelb) {
 
 }
 
-void WHERE(JOINT &joint_vals, TFORM &brels, TFORM &trelw, JOINT &spt) {
+void WHERE(JOINT &joint_vals, JOINT &spt) {
 	// computes the position (x, y, z, phi) of the tool frame with respect to the station
 	// get wrelb
 	TFORM wrelb, wrels, trels;

@@ -33,12 +33,15 @@ typedef double POS[3];
 
 JOINT T{0, 0, L140, 0};
 JOINT B{0, 0, L405, 0};
+TFORM wrelb, brels, trelw; 
+JOINT spt;
 
 void main(void);
 
 // menu stuff
-void fwd_kin(void);
+void fwd_kin(JOINT &joint_vals, JOINT &spt);
 void inv_kin(void);
+void check_joints(JOINT &joint_vals, bool &valid);
 
 // functions for class
 // Basic Matrix Transformation Procedures
@@ -49,7 +52,7 @@ void TINVERT(TFORM &tmat);
 
 // Forward Kinematics
 void KIN(JOINT &joint_vals, TFORM &wrelb);
-void WHERE(JOINT &joint_vals, TFORM &brels, TFORM &trelw, JOINT &spt);
+void WHERE(JOINT &joint_vals, JOINT &spt);
 
 // Inverse Kinematics
 void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol);
