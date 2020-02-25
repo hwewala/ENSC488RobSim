@@ -134,23 +134,27 @@ void main(void) {
 // Part 0: Menu Operations
 void fwd_kin(JOINT &joint_vals, JOINT &spt) {
 	printf("In Forward Kin!\n");
-	double theta1, theta2, d3, theta4;
+	double theta1_d, theta2_d, d3, theta4_d;
 	
 	bool valid = false;
 	while(!valid) {
 		// asks the user for joint values
 		printf("Please input joint parameters:\n");
-		printf("theta1 (deg) [-100, 100]: ");
-		cin >> theta1;
-		printf("theta2 (deg) [-150, 150]: ");
-		cin >> theta2;
+		printf("theta1 (deg) [-150, 150]: ");
+		cin >> theta1_d;
+		printf("theta2 (deg) [-100, 100]: ");
+		cin >> theta2_d;
 		printf("d3 (mm) [-200, -100]: ");
 		cin >> d3;
 		printf("theta4 (deg) [-150, 150]: ");
-		cin >> theta4;
+		cin >> theta4_d;
+
+		double theta1_r = DEG2RAD(theta1_d);
+		double theta2_r = DEG2RAD(theta2_d);
+		double theta4_r = DEG2RAD(theta2_d);
 
 		// check joint values
-		JOINT temp{DEG2RAD(theta1), DEG2RAD(theta2), d3, DEG2RAD(theta4)};
+		JOINT temp{theta1_r, theta2_r, d3, theta4_r};
 		pop_arr(temp, joint_vals);
 		check_joints(joint_vals, valid);
 
@@ -159,7 +163,7 @@ void fwd_kin(JOINT &joint_vals, JOINT &spt) {
 			printf("Invalid inputs! please try again.\n\n\n");
 		}
 	}
-	printf("\nYour inputs: [%f (rads), %f (rads), %f (mm), %f (rads)]\n\n", theta1, theta2, d3, theta4);
+	printf("\nYour inputs: [%f (rads), %f (rads), %f (mm), %f (rads)]\n\n", joint_vals[0], joint_vals[1], joint_vals[2], joint_vals[3]);
 
 	// report position and orientation of the tool (x, y, z, phi)
 	WHERE(joint_vals, spt);
