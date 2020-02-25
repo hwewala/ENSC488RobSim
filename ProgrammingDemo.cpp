@@ -16,41 +16,27 @@ using namespace std;
 int main(int argc, char* argv[])
 {	
 	// define brels
-	vector<float> in1{ 405, 0, 0 };
+	vector<float> in1{ 0, 0, 405, 0 };
 	vector<vector<float>> brels = UTOI(in1);
-	printf("brels:\n");
-	print_mat(brels);
 
 	// define trelw
-	vector<float> in2{ 60, 0, 0 };
+	vector<float> in2{ 0, 0, 140, 0 };
 	vector<vector<float>> trelw = UTOI(in2);
-	printf("trelw:\n");
-	print_mat(trelw);
 
-
+	// define joint values
 	float theta1 = torad(float(45));
 	float theta2 = torad(float(30));
-	float d3 = 0;
+	float d3 = 410;
 	float theta4 = torad(float(61));
-	vector<float> input{ theta1, theta2, d3, theta4 };
-	vector<vector<float>> wrelb = KIN(input);
-	printf("wrelb: \n");
-	print_mat(wrelb);
+	vector<float> joint_vals{ theta1, theta2, d3, theta4 };
 
-	vector<vector<float>> trels = WHERE(input, brels, trelw);
-	printf("trels: \n");
-	print_mat(trels);
+	vector<vector<float>> wrelb = KIN(joint_vals);
+	vector<float> curr_pos = ITOU(KIN(joint_vals));
 
 	vector<float> near;
 	vector<float> far;
 	bool sol;
-	INVKIN(wrelb, input, near, far, sol);
-	vector<vector<float>> test_mat1 = KIN(near);
-	vector<vector<float>> test_mat2 = KIN(far);
-	printf("test_mat1\n");
-	print_mat(test_mat1);
-	printf("test_mat2\n");
-	print_mat(test_mat2);
+	SOLVE({100, 200, 100}, curr_pos, near, far, sol);
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};
