@@ -16,7 +16,7 @@ void main(void) {
 	print(trelw);
 
 	// define wrelb
-	JOINT joint1{0, 0, 0, 0};
+	JOINT joint1{0, DEG2RAD(45), -100, 0};
 	TFORM wrelb;
 	KIN(joint1, wrelb);
 	printf("wrelb:\n");
@@ -37,9 +37,15 @@ void main(void) {
 	bool sol;
 	INVKIN(wrelb, curr_pos, near, far, sol);
 	TFORM test_mat;
-	KIN(near, test_mat);
-	printf("test_mat:\n");
-	print(test_mat);
+	if (sol == true) {
+		printf("Near: \n");
+		print(near);
+		KIN(near, test_mat);
+		printf("test_mat:\n");
+		print(test_mat);
+	}
+	else
+		printf("No solution found given joint constraints \n\n");
 
 	JOINT q1 = {0, 0, -100, 0};
 	JOINT q2 = {90, 90, -200, 45};
@@ -233,6 +239,7 @@ void WHERE(JOINT &joint_vals, TFORM &brels, TFORM &trelw, JOINT &spt) {
 }
 
 // Part 3: Inverse Kinematics
+
 void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// finds the inverse kinematics for the robot, then compares the solutions with the curr_pos to 
 	// find the nearest solution
@@ -243,13 +250,24 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	double z = wrelb[2][3];
 	double c_phi = wrelb[0][0];
 	double s_phi = wrelb[0][1];
+	bool p_invalid = false;
+	bool n_invalid = false;
 
 	// pow(base, exponent) for x^2 = pow(x, 2)
 	double c_theta2 = (pow(x, 2) + pow(y,2) - pow(L142, 2) - pow(L195, 2))/(2*L142*L195);
     double s_theta2 = sqrt(1 - pow(c_theta2, 2));
     double theta2_p = atan2(s_theta2, c_theta2);
-    double theta2_n = atan2(-s_theta2, c_theta2);
+	if (theta2_p > THETA_CONS_100)
+		p_invalid = true;
 
+    double theta2_n = atan2(-s_theta2, c_theta2);
+	if (theta2_n < -THETA_CONS_100)
+		n_invalid = true;
+
+	if (no_sol(p_invalid, n_invalid)) {
+		sol = false;
+		return;
+	}
 	// compute k's for theta1
     double k1_p = L195 + L142*cosf(theta2_p);
     double k2_p = L142*sinf(theta2_p);
@@ -258,16 +276,36 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double k2_n = L142*sinf(theta2_n);
 
     double theta1_p = atan2f(y,x) - atan2f(k2_p, k1_p);
+	if (theta1_p > THETA_CONS_150 && p_invalid == false)
+		p_invalid = true;
+	
     double theta1_n = atan2f(y,x) - atan2f(k2_n, k1_n);
-
+	if (theta1_n < -THETA_CONS_150 && n_invalid == false)
+		n_invalid = true;
+	if (no_sol(p_invalid, n_invalid)) {
+		sol = false;
+		return;
+	}
 	// compute theta4
 	double phi = atan2f(s_phi, c_phi);
     double theta4_p = theta1_p + theta2_p - phi;
+	if (theta4_p > THETA_CONS_150 && p_invalid == false)
+		p_invalid = true;
     double theta4_n = theta1_n + theta2_n - phi;
+	if (theta4_n < -THETA_CONS_150 && n_invalid == false)
+		n_invalid = true;
 
+	if (no_sol(p_invalid, n_invalid)) {
+		sol = false;
+		return;
+	}
 	// compute d3
     double d3 = z - L70 + L410;
-
+	if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
+		sol = false;
+		return;
+	}
+	sol = true;
 	JOINT jp{theta1_p, theta2_p, d3, theta4_p};
 	JOINT jn{theta1_n, theta2_n, d3, theta4_n};
 
@@ -292,6 +330,25 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 
     // find nearest solution with INVKIN
     INVKIN(wrelb, tar_pos, near, far, sol);
+
+	// sum of differences between current and final joint position for a given solution is stored in each index
+	// size 2 is hardcoded since we only get two solutions
+	float sums[2] = { 0, 0 };
+	JOINT temp;
+	// weights for each joint
+	float w[4] = { 1, 1, 1, 1 };
+	int M = size(sums);
+	for (int i = 0; i < M; i++) {
+		for (int j = 0; j < N; j++) {
+			sums[i] += w[j] * (abs(near[j] - curr_pos[j]));
+		}
+	}
+	//swap near and far if it is the closer joint
+	if (sums[1] < sums[0]){
+		pop_arr(near, temp);
+		pop_arr(far, near);
+		pop_arr(temp, far);
+	}
 }
 
 // Part A: Helper Functions
@@ -442,4 +499,13 @@ void transpose_mat(RFORM &rmat, RFORM &imat) {
 			imat[i][j] = rmat[j][i];
 		}
 	}
+}
+
+//returns true if no solution is available
+bool no_sol(bool p_invalid, bool n_invalid) {
+	if (n_invalid && p_invalid) {
+		cout << "No solution found within revolute constraints \n";
+		return true;
+	}
+	return false;
 }

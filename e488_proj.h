@@ -20,6 +20,10 @@
 #define L410 410
 #define PI 3.14159265
 #define N 4
+#define THETA_CONS_150 150
+#define THETA_CONS_100 100
+#define D3LOWER_200 -200
+#define D3UPPER_100 -100
 
 using namespace std;
 
@@ -61,3 +65,4 @@ void pmult(POS &pos, double val, POS &res);
 void padd(POS &pos1, POS &pos2, POS &res);
 void tconst(RFORM &rmat, POS &pos, TFORM &tmat);
 void transpose_mat(RFORM &rmat, RFORM &imat);
+bool no_sol(bool p_invalid, bool n_invalid);
