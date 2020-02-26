@@ -376,11 +376,11 @@ void TINVERT(TFORM &tmat, TFORM &inv) {
 	transpose_mat(rmat, trans_mat);
 
 	POS pos2, pos3;
-	pmult(pos1, -1, pos2);
-	rmult(rmat, pos1, pos3);
+	pmult(pos1, -1, pos2); // -apb
+	rmult(rmat, pos2, pos3); // bra * -apb = bpa
 
 	// constructs the new matrix
-	tconst(trans_mat, pos2, inv);
+	tconst(trans_mat, pos3, inv);
 }
 
 // Part 2: Forward Kinematics
