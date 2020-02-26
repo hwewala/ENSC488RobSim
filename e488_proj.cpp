@@ -18,21 +18,24 @@ void main(void) {
 	UTOI(T, trelw);
 
 	while(true) {
-		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. Reset Robot\n 4. Exit\n");
+		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. Reset Robot\n 4. MoveToConfiguration\n 5. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
 
 		switch(user_input) {
 			case 1 : // Forward Kinematics
-				fwd_kin(joint_vals, spt);
+				FwdKin(joint_vals, spt);
 				break;
 			case 2 : // Inverse Kinematics 
-				inv_kin();
+				InvKin();
 				break;
 			case 3 : // Reset Robot 
 				ResetRobot();
 				break;
-			case 4 : // Exit
+			case 4 : // MoveToConfig
+				SimpleMove();
+				break;
+			case 5 : // Exit
 				return; 
 				break;
 			default : 
@@ -132,14 +135,14 @@ void main(void) {
 }
 
 // Part 0: Menu Operations
-void fwd_kin(JOINT &joint_vals, JOINT &spt) {
-	printf("In Forward Kin!\n");
+void FwdKin(JOINT &joint_vals, JOINT &spt) {
+	printf("\nIn Forward Kin!\n");
 	double theta1_d, theta2_d, d3, theta4_d;
 	
 	bool valid = false;
 	while(!valid) {
 		// asks the user for joint values
-		printf("Please input joint parameters:\n");
+		printf("Input joint parameters:\n");
 		printf("theta1 (deg) [-150, 150]: ");
 		cin >> theta1_d;
 		printf("theta2 (deg) [-100, 100]: ");
@@ -169,13 +172,74 @@ void fwd_kin(JOINT &joint_vals, JOINT &spt) {
 	WHERE(joint_vals, spt);
 	printf("Position and Orientation of Tool Frame (x, y, z, phi):\n");
 	print(spt);
-	printf("\n\n\n");
+	printf("\n\n");
 
 	return;
 }
 
-void inv_kin(void) {
-	printf("In Inverse Kin!\n");
+void InvKin(void) {
+	printf("\nIn Inverse Kin!\n");
+
+	// asks user for pose position (x, y, z, phi) of the tool 
+	double x, y, z, phi;
+	printf("Input position and orientation of tool:\n");
+	printf("x (mm): ");
+	cin >> x;
+	printf("y (mm): ");
+	cin >> y;
+	printf("z (mm): ");
+	cin >> z;
+	printf("phi (deg): ");
+	cin >> phi;
+
+	printf("Your input: [%f (mm), %f (mm), %f (mm), %f (rads)]\n", x, y, z, phi);
+	printf("Solving inverse kinematics...\n\n");
+
+	JOINT t_pos{x, y, z, DEG2RAD(phi)};
+	JOINT c_pos;
+	JOINT near, far;
+	bool sol;
+	GetConfiguration(c_pos);
+	SOLVE(t_pos, c_pos, near, far, sol);
+
+	if(!sol) {
+		// no solution exists!
+		printf("No solution exists!\n\n");
+		return;
+	} 
+
+	// will probably need to print these as a loop
+	printf("all solutions: ");
+	print(far);
+
+	// print the closest solution
+	printf("\n\n"); 
+	printf("closest solution: ");
+	print(near);
+
+	// move to closet solution
+	MoveToConfiguration(near);
+
+	printf("\n\n");
+	return;
+}
+
+void SimpleMove(void) {
+	double x, y, z, phi;
+	// moves robot to configuration
+	printf("Move robot to configuration (x, y, z, phi):\n");
+	printf("x: ");
+	cin >> x;
+	printf("y: ");
+	cin >> y;
+	printf("z: ");
+	cin >> z;
+	printf("phi: ");
+	cin >> phi;
+
+	printf("\nMoving robot to (%f, %f, %f, %f)...\n\n", x, y, z, phi);
+	JOINT pos{ x, y, z, phi };
+	MoveToConfiguration(pos);
 	return;
 }
 

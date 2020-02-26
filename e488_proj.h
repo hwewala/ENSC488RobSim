@@ -39,8 +39,9 @@ JOINT spt;
 void main(void);
 
 // menu stuff
-void fwd_kin(JOINT &joint_vals, JOINT &spt);
-void inv_kin(void);
+void FwdKin(JOINT &joint_vals, JOINT &spt);
+void InvKin(void);
+void SimpleMove(void);
 void check_joints(JOINT &joint_vals, bool &valid);
 
 // functions for class
