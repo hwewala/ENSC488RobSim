@@ -376,7 +376,7 @@ void TINVERT(TFORM &tmat, TFORM &inv) {
 	transpose_mat(rmat, trans_mat);
 
 	POS pos2, pos3;
-	pmult(pos2, -1, pos3);
+	pmult(pos1, -1, pos2);
 	rmult(rmat, pos1, pos3);
 
 	// constructs the new matrix
