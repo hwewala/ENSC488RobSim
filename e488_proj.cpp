@@ -1,4 +1,5 @@
 #include "e488_proj.h"
+using namespace std;
 
 void main(void) {
 	// runs UI
@@ -9,7 +10,9 @@ void main(void) {
 	3. Reset Robot
 	4. Exit
 	*/
-
+	double A = atan2(2, 10);
+	double C = atan2(-2, -10);
+	printf("A: %f\nB: %f\n", A, C);
 	int user_input;
 	bool done;
 	JOINT joint_vals, spt;
@@ -225,20 +228,20 @@ void InvKin(void) {
 }
 
 void SimpleMove(void) {
-	double x, y, z, phi;
+	double theta_1, theta_2, translation, phi;
 	// moves robot to configuration
 	printf("Move robot to configuration (x, y, z, phi):\n");
-	printf("x: ");
-	cin >> x;
-	printf("y: ");
-	cin >> y;
-	printf("z: ");
-	cin >> z;
-	printf("phi: ");
+	printf("first joint angle: ");
+	cin >> theta_1;
+	printf("second joint angle: ");
+	cin >> theta_2;
+	printf("vertical translation: ");
+	cin >> translation;
+	printf("gripper_orientation: ");
 	cin >> phi;
 
-	printf("\nMoving robot to (%f, %f, %f, %f)...\n\n", x, y, z, phi);
-	JOINT pos{ x, y, z, phi };
+	printf("\nMoving robot to (%f, %f, %f, %f)...\n\n", theta_1, theta_2, translation, phi);
+	JOINT pos{ theta_1, theta_2, translation, phi };
 	MoveToConfiguration(pos);
 	return;
 }
