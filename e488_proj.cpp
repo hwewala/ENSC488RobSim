@@ -365,19 +365,19 @@ void TINVERT(TFORM &tmat, TFORM &inv) {
 
 	// gets the rotation matrix
 	RFORM rmat;
-	get_r(tmat, rmat);
+	get_r(tmat, rmat); //arb
 
 	// gets the position vector
 	POS pos1;
-	get_pos(tmat, pos1);
+	get_pos(tmat, pos1); //apb
 
 	// transforms the rotation matrix (ie. the inverse of rotation matrix)
 	RFORM trans_mat;
-	transpose_mat(rmat, trans_mat);
+	transpose_mat(rmat, trans_mat); //bra
 
 	POS pos2, pos3;
 	pmult(pos1, -1, pos2); // -apb
-	rmult(rmat, pos2, pos3); // bra * -apb = bpa
+	rmult(trans_mat, pos2, pos3); // bra * -apb = bpa
 
 	// constructs the new matrix
 	tconst(trans_mat, pos3, inv);
