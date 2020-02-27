@@ -13,6 +13,7 @@
 #define L70 70
 #define L80 80
 #define L130 130
+#define L135 135
 #define L140 140
 #define L142 142
 #define L195 195
@@ -31,7 +32,7 @@ typedef double TFORM[4][4];
 typedef double RFORM[3][3];
 typedef double POS[3];
 
-JOINT T{0, 0, L140, 0};
+JOINT T{0, 0, L135, 0};
 JOINT B{0, 0, L405, 0};
 TFORM wrelb, brels, trelw; 
 JOINT spt;
@@ -39,7 +40,8 @@ JOINT spt;
 void main(void);
 
 // menu stuff
-void FwdKin(JOINT &joint_vals, JOINT &spt);
+void FwdKinDeg(JOINT &joint_vals, JOINT &spt);
+void FwdKinRad(JOINT &joint_vals, JOINT &spt);
 void InvKin(void);
 void SimpleMove(void);
 void check_joints(JOINT &joint_vals, bool &valid);
@@ -47,6 +49,7 @@ void check_joints(JOINT &joint_vals, bool &valid);
 // functions for class
 // Basic Matrix Transformation Procedures
 void UTOI(JOINT &pos, TFORM &mat);
+void UTOI_FLIP(JOINT &pos, TFORM &mat);
 void ITOU(TFORM &mat, JOINT &pos);
 void TMULT(TFORM &brela, TFORM &crelb, TFORM &crela);
 void TINVERT(TFORM &tmat);

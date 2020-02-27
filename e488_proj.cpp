@@ -10,9 +10,7 @@ void main(void) {
 	3. Reset Robot
 	4. Exit
 	*/
-	double A = atan2(2, 10);
-	double C = atan2(-2, -10);
-	printf("A: %f\nB: %f\n", A, C);
+
 	int user_input;
 	bool done;
 	JOINT joint_vals, spt;
@@ -27,7 +25,7 @@ void main(void) {
 
 		switch(user_input) {
 			case 1 : // Forward Kinematics
-				FwdKin(joint_vals, spt);
+				FwdKinDeg(joint_vals, spt);
 				break;
 			case 2 : // Inverse Kinematics 
 				InvKin();
@@ -41,104 +39,19 @@ void main(void) {
 			case 5 : // Exit
 				return; 
 				break;
+			case 6 : // fwdkin rad
+				FwdKinRad(joint_vals, spt);
+				break;
 			default : 
 				printf("Invalid input. Please try again.\n\n\n");
 				break;
 		}		
 	}
 	
-
-	// // define brels
-	// JOINT pos1 {0, 0, L405, 0};
-	// TFORM brels;
-	// UTOI(pos1, brels);
-	// printf("brels:\n");
-	// print(brels);
-
-	// // define trelw
-	// JOINT pos2{0, 0, L130+L10, 0};
-	// TFORM trelw;
-	// UTOI(pos2, trelw);
-	// printf("trelw:\n");
-	// print(trelw);
-
-	// // define wrelb
-	// JOINT joint1{0, DEG2RAD(45), -100, 0};
-	// TFORM wrelb;
-	// KIN(joint1, wrelb);
-	// printf("wrelb:\n");
-	// print(wrelb);
-
-	// // TFORM trels;
-	// TFORM trels, wrels;
-	// TMULT(brels, wrelb, wrels);
-	// printf("wrels:\n");
-	// print(wrels);
-	// TMULT(wrels, trelw, trels);
-	// printf("trels:\n");
-	// print(trels);
-
-	// // test inv kin eqns
-	// JOINT params, near, far;
-	// JOINT curr_pos;
-	// bool sol;
-	// INVKIN(wrelb, curr_pos, near, far, sol);
-	// TFORM test_mat;
-	// if (sol == true) {
-	// 	printf("Near: \n");
-	// 	print(near);
-	// 	KIN(near, test_mat);
-	// 	printf("wrelb using INVKIN values:\n");
-	// 	print(test_mat);
-	// }
-	// else
-	// 	printf("No solution found given joint constraints \n\n");
-
-	// JOINT q1 = {0, 0, -100, 0};
-	// JOINT q2 = {90, 90, -200, 45};
-	// printf("Keep this window in focus, and...\n");
-	
-	// char ch;
-	// int c;
-
-	// const int ESC = 27;
-	
-	// printf("1Press any key to continue \n");
-	// printf("2Press ESC to exit  \n");
-
-	// c = _getch() ;
-
-	// while (1)
-	// {
-		
-	// 	if (c != ESC)
-	// 	{
-	// 		printf("Press '1' or '2' \n");
-	// 		ch = _getch();
-
-	// 		if (ch == '1')
-	// 		{
-	// 			MoveToConfiguration(q1);
-	// 			//DisplayConfiguration(q1);
-	// 		}
-	// 		else if (ch == '2')
-	// 		{
-	// 			MoveToConfiguration(q2);
-	// 			//DisplayConfiguration(q2);
-	// 		}
-
-	// 		printf("Press any key to continue \n");
-	// 		printf("Press q to exit \n");
-	// 		c = _getch();
-	// 	}
-	// 	else
-	// 		break;
-	// }
-	// return;
 }
 
 // Part 0: Menu Operations
-void FwdKin(JOINT &joint_vals, JOINT &spt) {
+void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
 	printf("\nIn Forward Kin!\n");
 	double theta1_d, theta2_d, d3, theta4_d;
 	
@@ -157,10 +70,48 @@ void FwdKin(JOINT &joint_vals, JOINT &spt) {
 
 		double theta1_r = DEG2RAD(theta1_d);
 		double theta2_r = DEG2RAD(theta2_d);
-		double theta4_r = DEG2RAD(theta2_d);
+		double theta4_r = DEG2RAD(theta4_d);
 
 		// check joint values
 		JOINT temp{theta1_r, theta2_r, d3, theta4_r};
+		pop_arr(temp, joint_vals);
+		check_joints(joint_vals, valid);
+
+		// determine if we need different joint values
+		if(!valid) {
+			printf("Invalid inputs! please try again.\n\n\n");
+		}
+	}
+	printf("\nYour inputs: [%f (rads), %f (rads), %f (mm), %f (rads)]\n\n", joint_vals[0], joint_vals[1], joint_vals[2], joint_vals[3]);
+
+	// report position and orientation of the tool (x, y, z, phi)
+	WHERE(joint_vals, spt);
+	printf("Position and Orientation of Tool Frame (x, y, z, phi):\n");
+	print(spt);
+	printf("\n\n");
+
+	return;
+}
+
+void FwdKinRad(JOINT &joint_vals, JOINT &spt) {
+	printf("\nIn Forward Kin (RAD)!\n");
+	double theta1, theta2, d3, theta4;
+	
+	bool valid = false;
+	while(!valid) {
+		// asks the user for joint values
+		printf("Input joint parameters:\n");
+		printf("theta1 (rad): ");
+		cin >> theta1;
+		printf("theta2 (rad): ");
+		cin >> theta2;
+		printf("d3 (mm) [-200, -100]: ");
+		cin >> d3;
+		printf("theta4 (rad): ");
+		cin >> theta4;
+
+		// check joint values
+		JOINT temp{theta1, theta2, d3, theta4};
 		pop_arr(temp, joint_vals);
 		check_joints(joint_vals, valid);
 
@@ -203,6 +154,9 @@ void InvKin(void) {
 	JOINT near, far;
 	bool sol;
 	GetConfiguration(c_pos);
+	c_pos[0] = DEG2RAD(c_pos[0]);
+	c_pos[1] = DEG2RAD(c_pos[1]);
+	c_pos[3] = DEG2RAD(c_pos[3]);
 	SOLVE(t_pos, c_pos, near, far, sol);
 
 	if(!sol) {
@@ -217,7 +171,7 @@ void InvKin(void) {
 
 	// print the closest solution
 	printf("\n\n"); 
-	printf("closest solution: ");
+	printf("NEARest solution: ");
 	print(near);
 
 	// move to closet solution
@@ -307,7 +261,39 @@ void UTOI(JOINT &pos, TFORM &mat) {
 
 	return;
 }
+void UTOI_FLIP(JOINT &pos, TFORM &mat) {
+    /*  Description: User form to internal form
+        Assume all rotations are about Z axis
+        Input:
+            pos = (x, y, z, phi)
+        Output:
+            T = | cos(phi)    sin(phi)       0   x |
+                | sin(phi)    -cos(phi)      0   y |
+                | 0             0           -1   z |
+                | 0             0            0   1 |
+    */
 
+    // get the different position values
+    double x = pos[0];
+    double y = pos[1];
+    double z = pos[2];
+    double phi = pos[3];
+
+	printf("phi: %f\n", pos[3]);
+
+    // calculate parameters for transformation matrix, T
+    double s_phi = sin(phi);
+    double c_phi = cos(phi);
+
+	TFORM temp {{c_phi, s_phi, 0, x},
+				{s_phi, -c_phi, 0, y},
+				{0, 0, -1, z},
+				{0, 0, 0, 1}};
+	
+	pop_mat(temp, mat);
+
+	return;
+}
 void ITOU(TFORM &mat, JOINT &pos) {
 	/*  Description: Internal form to user form
         Assume all rotations are around Z-axis 
@@ -400,7 +386,7 @@ void KIN(JOINT &joint_vals, TFORM &wrelb) {
 
 	TFORM temp = {	{c_phi, s_phi, 	0, L142*cos(theta1+theta2) + L195*cos(theta1)},
 					{s_phi, -c_phi, 0, L142*sin(theta1+theta2) + L195*sin(theta1)},
-					{0,     0,     -1, L70-(L410 - d3)},
+					{0,     0,     -1, L70-(L410 + d3)},
 					{0, 	0, 		0, 1}};
 	pop_mat(temp, wrelb);
 
@@ -443,10 +429,10 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	if (theta2_n < -THETA_CONS_100)
 		n_invalid = true;
 
-	if (no_sol(p_invalid, n_invalid)) {
-		sol = false;
-		return;
-	}
+	// if (no_sol(p_invalid, n_invalid)) {
+	// 	sol = false;
+	// 	return;
+	// }
 	// compute k's for theta1
     double k1_p = L195 + L142*cosf(theta2_p);
     double k2_p = L142*sinf(theta2_p);
@@ -454,36 +440,85 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double k1_n = L195 + L142*cosf(theta2_n);
     double k2_n = L142*sinf(theta2_n);
 
-    double theta1_p = atan2f(y,x) - atan2f(k2_p, k1_p);
-	if (theta1_p > THETA_CONS_150 && p_invalid == false)
-		p_invalid = true;
-	
-    double theta1_n = atan2f(y,x) - atan2f(k2_n, k1_n);
-	if (theta1_n < -THETA_CONS_150 && n_invalid == false)
-		n_invalid = true;
-	if (no_sol(p_invalid, n_invalid)) {
-		sol = false;
-		return;
+    double alpha11_p = atan2f(y,x) - atan2f(k2_p, k1_p);
+	double theta1_p = alpha11_p;
+	// check if it's within joint limit
+
+	// check if sum is in invalid range
+	double alpha12_p = abs(abs(alpha11_p) - DEG2RAD(360));
+	if(abs(alpha11_p) > DEG2RAD(THETA_CONS_150)) {
+		if(alpha12_p < DEG2RAD(210) && alpha12_p > DEG2RAD(150)) {
+			p_invalid = true;
+		}
+		else {
+			theta1_p = abs(alpha11_p) - DEG2RAD(360);
+		}
 	}
+
+    double alpha11_n = atan2f(y,x) - atan2f(k2_n, k1_n);
+	double theta1_n = alpha11_n;
+	double alpha12_n = abs(abs(alpha11_n) - DEG2RAD(360));
+	if(abs(alpha11_n) > DEG2RAD(THETA_CONS_150)) {
+		if(alpha12_n < DEG2RAD(210) && alpha12_n > DEG2RAD(150)) {
+			n_invalid = true;
+		} 
+		else {
+			theta1_n = abs(alpha11_n) - DEG2RAD(360);
+		}
+		
+	}
+
+	//valid alpha_n, alpha_p value
+
+
+	// if (no_sol(p_invalid, n_invalid)) {
+	// 	sol = false;
+	// 	return;
+	// }
 	// compute theta4
 	double phi = atan2f(s_phi, c_phi);
-    double theta4_p = theta1_p + theta2_p - phi;
-	if (theta4_p > THETA_CONS_150 && p_invalid == false)
-		p_invalid = true;
-    double theta4_n = theta1_n + theta2_n - phi;
-	if (theta4_n < -THETA_CONS_150 && n_invalid == false)
-		n_invalid = true;
-
-	if (no_sol(p_invalid, n_invalid)) {
-		sol = false;
-		return;
+    double alpha41_p = theta1_p + theta2_p - phi;
+	double theta4_p = alpha41_p;
+	double alpha42_p = abs(abs(alpha41_p) - DEG2RAD(360));
+	if(abs(alpha41_p) > DEG2RAD(THETA_CONS_150)) {
+		if(alpha42_p < DEG2RAD(210) && alpha42_p > DEG2RAD(150)) {
+			p_invalid = true;
+		}
+		else {
+			theta4_p = abs(alpha41_p) - DEG2RAD(360);
+		}
 	}
+
+	// if (theta4_p > THETA_CONS_150 && p_invalid == false)
+	// 	p_invalid = true;
+
+	
+
+    double alpha41_n = theta1_n + theta2_n - phi;
+	double theta4_n = alpha41_n;
+	double alpha42_n = abs(abs(alpha41_n) - DEG2RAD(360));
+	if(abs(alpha41_n) > DEG2RAD(THETA_CONS_150)) {
+		if(alpha42_n < DEG2RAD(210) && alpha42_n > DEG2RAD(150)) {
+			p_invalid = true;
+		}
+		else {
+			theta4_n = abs(alpha41_n) - DEG2RAD(360);
+		}
+	}
+
+	// if (theta4_n < -THETA_CONS_150 && n_invalid == false)
+	// 	n_invalid = true;
+
+	// if (no_sol(p_invalid, n_invalid)) {
+	// 	sol = false;
+	// 	return;
+	// }
 	// compute d3
     double d3 = z - L70 + L410;
-	if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
-		sol = false;
-		return;
-	}
+	// if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
+	// 	sol = false;
+	// 	return;
+	// }
 	sol = true;
 	JOINT jp{theta1_p, theta2_p, d3, theta4_p};
 	JOINT jn{theta1_n, theta2_n, d3, theta4_n};
@@ -496,16 +531,40 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 	// given a target position, determines the joint values 
 	// what is happening in this function?
 
-	TFORM wrels, brels, srelb, wrelb;
-	// get wrelb
-    UTOI(curr_pos, wrelb);
-    // get brels
-	JOINT pos = {0, 0, L405, 0};
-    UTOI(pos, brels);
-    TINVERT(brels, srelb);
+	printf("curr_pos:");
+	print(curr_pos);
 
+	TFORM wrels, wrelb, trels, trelb; // calculated with TMULT
+	TFORM srelb, wrelt; // inverses of global transforms
+	// get trels
+    UTOI_FLIP(tar_pos, trels); //error
+
+	printf("trels\n");
+	print(trels);
+
+    // get brels
+    TINVERT(brels, srelb); //
+
+	printf("brels:\n");
+	print(brels);
+
+	printf("srelb:\n");
+	print(srelb);
+
+	TINVERT(trelw, wrelt);
+
+	printf("trelw:\n");
+	print(trelw);
+
+	printf("wrelt:\n");
+	print(wrelt);
+
+	TMULT(srelb, trels, trelb);
     // do trelw = srelb * wrels
-    TMULT(srelb, wrels, wrelb);
+    TMULT(trelb, wrelt, wrelb);
+
+	printf("wrelb\n");
+	print(wrelb);
 
     // find nearest solution with INVKIN
     INVKIN(wrelb, tar_pos, near, far, sol);
