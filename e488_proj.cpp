@@ -28,7 +28,7 @@ void main(void) {
 				FwdKinDeg(joint_vals, spt);
 				break;
 			case 2 : // Inverse Kinematics 
-				InvKin();
+				InvKin(spt);
 				break;
 			case 3 : // Reset Robot 
 				ResetRobot();
@@ -131,7 +131,7 @@ void FwdKinRad(JOINT &joint_vals, JOINT &spt) {
 	return;
 }
 
-void InvKin(void) {
+void InvKin(JOINT &spt) {
 	printf("\nIn Inverse Kin!\n");
 
 	// asks user for pose position (x, y, z, phi) of the tool 
@@ -139,14 +139,22 @@ void InvKin(void) {
 	printf("Input position and orientation of tool:\n");
 	printf("x (mm): ");
 	cin >> x;
-	printf("y (mm): ");
-	cin >> y;
-	printf("z (mm): ");
-	cin >> z;
-	printf("phi (deg): ");
-	cin >> phi;
+	if(x == 666) {
+		x = spt[0];
+		y = spt[1];
+		z = spt[2];
+		phi = RAD2DEG(spt[3]);
+	}
+	else {
+		printf("y (mm): ");
+		cin >> y;
+		printf("z (mm): ");
+		cin >> z;
+		printf("phi (deg): ");
+		cin >> phi;
+	}
 
-	printf("Your input: [%f (mm), %f (mm), %f (mm), %f (rads)]\n", x, y, z, phi);
+	printf("Your input: [%f (mm), %f (mm), %f (mm), %f (deg)]\n", x, y, z, phi);
 	printf("Solving inverse kinematics...\n\n");
 
 	JOINT t_pos{x, y, z, DEG2RAD(phi)};
@@ -531,40 +539,40 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 	// given a target position, determines the joint values 
 	// what is happening in this function?
 
-	printf("curr_pos:");
-	print(curr_pos);
+	// printf("curr_pos:");
+	// print(curr_pos);
 
 	TFORM wrels, wrelb, trels, trelb; // calculated with TMULT
 	TFORM srelb, wrelt; // inverses of global transforms
 	// get trels
     UTOI_FLIP(tar_pos, trels); //error
 
-	printf("trels\n");
-	print(trels);
+	// printf("trels\n");
+	// print(trels);
 
     // get brels
     TINVERT(brels, srelb); //
 
-	printf("brels:\n");
-	print(brels);
+	// printf("brels:\n");
+	// print(brels);
 
-	printf("srelb:\n");
-	print(srelb);
+	// printf("srelb:\n");
+	// print(srelb);
 
 	TINVERT(trelw, wrelt);
 
-	printf("trelw:\n");
-	print(trelw);
+	// printf("trelw:\n");
+	// print(trelw);
 
-	printf("wrelt:\n");
-	print(wrelt);
+	// printf("wrelt:\n");
+	// print(wrelt);
 
 	TMULT(srelb, trels, trelb);
     // do trelw = srelb * wrels
     TMULT(trelb, wrelt, wrelb);
 
-	printf("wrelb\n");
-	print(wrelb);
+	// printf("wrelb\n");
+	// print(wrelb);
 
     // find nearest solution with INVKIN
     INVKIN(wrelb, tar_pos, near, far, sol);
