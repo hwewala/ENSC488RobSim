@@ -282,8 +282,6 @@ void UTOI_FLIP(JOINT &pos, TFORM &mat) {
     double z = pos[2];
     double phi = pos[3];
 
-	printf("phi: %f\n", pos[3]);
-
     // calculate parameters for transformation matrix, T
     double s_phi = sin(phi);
     double c_phi = cos(phi);
