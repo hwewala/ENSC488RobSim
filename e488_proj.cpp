@@ -576,7 +576,9 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 	// sum of differences between current and final joint position for a given solution is stored in each index
 	// size 2 is hardcoded since we only get two solutions
 	float sums[2] = { 0, 0 };
-	JOINT temp;
+	// temp used for swapping near and far, itr used to iterate over near and far values when computing sums
+	JOINT temp, itr;
+	pop_arr(near, itr);
 	// weights for each joint
 	float w[4] = { 1, 1, 1, 1 };
 	int M = size(sums);
@@ -584,6 +586,7 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 		for (int j = 0; j < N; j++) {
 			sums[i] += w[j] * (abs(near[j] - curr_pos[j]));
 		}
+		pop_arr(far, itr);
 	}
 	//swap near and far if it is the closer joint
 	if (sums[1] < sums[0]){
