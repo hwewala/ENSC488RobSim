@@ -47,6 +47,7 @@ void FwdKinRad(JOINT &joint_vals, JOINT &spt);
 void InvKin(JOINT &spt);
 void SimpleMove(void);
 void check_joints(JOINT &joint_vals, bool &valid);
+void ToggleGripper(bool& status);
 
 // functions for class
 // Basic Matrix Transformation Procedures

@@ -7,19 +7,22 @@ void main(void) {
 	/* Menu Options:
 	1. Forward Kinematics
 	2. Inverse Kinematics
-	3. Reset Robot
-	4. Exit
+	3. Stop+Reset Robot
+	4. Close Gripper
+	5. Move To Config
+	6. Exit
 	*/
 
 	int user_input;
 	bool done;
+	bool gripper_status = false;
 	JOINT joint_vals, spt;
 
 	UTOI(B, brels);
 	UTOI(T, trelw);
 
 	while(true) {
-		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. MoveToConfiguration\n 4. Grasp\n 5. Ungrasp\n 6. Exit\n");
+		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. Stop+Reset Robot\n 4. Toggle Gripper\n 5. MoveToConfiguration\n 6. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
 
@@ -30,14 +33,19 @@ void main(void) {
 			case 2 : // Inverse Kinematics 
 				InvKin(spt);
 				break;
-			case 3 : // Move to Config
+			case 3 : // Stop Robot
+				printf("Stopping and Resetting Robot\n");
+				StopRobot();
+				ResetRobot();
+				break;
+			case 4 : // Toggle Gripper
+				ToggleGripper(gripper_status);
+				break;
+			case 5 : // MoveToConfig
 				SimpleMove();
 				break;
-			case 4 : // Grasp
-				Grasp(true);
-				break;
-			case 5 : // UnGrasp
-				Grasp(false);
+			case 6 : // Exit
+				return; 
 				break;
 			case 7 : // fwdkin rad
 				FwdKinRad(joint_vals, spt);
@@ -188,6 +196,9 @@ void InvKin(JOINT &spt) {
 	printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
 
 	// move to closet solution
+	near[0] = RAD2DEG(near[0]);
+	near[1] = RAD2DEG(near[1]);
+	near[3] = RAD2DEG(near[3]);
 	MoveToConfiguration(near);
 
 	printf("\n\n");
@@ -211,6 +222,19 @@ void SimpleMove(void) {
 	JOINT pos{ theta_1, theta_2, translation, phi };
 	MoveToConfiguration(pos);
 	return;
+}
+void ToggleGripper(bool &status) {
+	//Toggle Status of gripper then open/close it
+	//Gripper opens when status is false and closes when status is true
+	if (status == true) {
+		printf("Opening Gripper\n");
+		status = false;
+	}
+	else {
+		printf("Closing Gripper\n");
+		status = true;
+	}
+	Grasp(status);
 }
 
 void check_joints(JOINT &joint_vals, bool &valid) {	
@@ -521,13 +545,13 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 		}
 	}
 
-	// if (theta4_n < -THETA_CONS_150 && n_invalid == false)
-	// 	n_invalid = true;
+	 if (theta4_n < -THETA_CONS_150 && n_invalid == false)
+	 	n_invalid = true;
 
-	// if (no_sol(p_invalid, n_invalid)) {
-	// 	sol = false;
-	// 	return;
-	// }
+	 if (no_sol(p_invalid, n_invalid)) {
+	 	sol = false;
+	 	return;
+	 }
 	// compute d3
 	double d3 = -z - L410 + L70;	
 	// if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
