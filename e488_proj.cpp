@@ -179,6 +179,16 @@ void InvKin(JOINT &spt) {
 	if(!sol) {
 		// no solution exists!
 		printf("No solution exists!\n\n");
+		
+		// will probably need to print these as a loop
+		printf("FAR solutions: ");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
+
+		// print the closest solution
+		printf("\n");
+		printf("NEARest solution: ");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
+
 		return;
 	} 
 
@@ -443,23 +453,29 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	double s_phi = wrelb[0][1];
 	bool p_invalid = false;
 	bool n_invalid = false;
-
+	sol = true;
+	//double invalid_joints[8];
 	// pow(base, exponent) for x^2 = pow(x, 2)
 	double c_theta2 = (pow(x, 2) + pow(y,2) - pow(L142, 2) - pow(L195, 2))/(2*L142*L195);
     double s_theta2 = sqrt(1 - pow(c_theta2, 2));
     
 	double theta2_p = atan2(s_theta2, c_theta2);
-	if (theta2_p > THETA_CONS_100)
+	if (theta2_p > DEG2RAD(THETA_CONS_100))
+	{
 		p_invalid = true;
+		//invalid_joints[2] = theta2_p;
+	}
 
     double theta2_n = atan2(-s_theta2, c_theta2);
-	if (theta2_n < -THETA_CONS_100)
+	if (theta2_n < -DEG2RAD(THETA_CONS_100)) {
 		n_invalid = true;
+		//invalid_joints[3] = theta2_n;
+	}
 
-	// if (no_sol(p_invalid, n_invalid)) {
-	// 	sol = false;
+	if (no_sol(p_invalid, n_invalid)) {
+		sol = false;
 	// 	return;
-	// }
+	 }
 	// compute k's for theta2
     double k1_p = L195 + L142*cosf(theta2_p);
     double k2_p = L142*sinf(theta2_p);
@@ -498,10 +514,10 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	//valid alpha_n, alpha_p value
 
 
-	// if (no_sol(p_invalid, n_invalid)) {
-	// 	sol = false;
+	 if (no_sol(p_invalid, n_invalid)) {
+	 	sol = false;
 	// 	return;
-	// }
+	 }
 
 	// compute theta4
 	double phi = atan2(s_phi, c_phi);
@@ -547,20 +563,21 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 
 	 if (no_sol(p_invalid, n_invalid)) {
 	 	sol = false;
-	 	return;
+	 	//return;
 	 }
 	// compute d3
 	double d3 = -z - L410 + L70;	
-	// if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
-	// 	sol = false;
+	 if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
+	 	sol = false;
 	// 	return;
-	// }
-	sol = true;
+	 }
 	JOINT jp{theta1_p, theta2_p, d3, theta4_p};
 	JOINT jn{theta1_n, theta2_n, d3, theta4_n};
 
 	pop_arr(jp, near);
 	pop_arr(jn, far);
+
+
 }
 
 void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
@@ -781,7 +798,6 @@ void transpose_mat(RFORM &rmat, RFORM &imat) {
 //returns true if no solution is available
 bool no_sol(bool p_invalid, bool n_invalid) {
 	if (n_invalid && p_invalid) {
-		cout << "No solution found within revolute constraints \n";
 		return true;
 	}
 	return false;
