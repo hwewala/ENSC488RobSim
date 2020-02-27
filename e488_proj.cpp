@@ -19,7 +19,7 @@ void main(void) {
 	UTOI(T, trelw);
 
 	while(true) {
-		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. Reset Robot\n 4. MoveToConfiguration\n 5. Exit\n");
+		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. MoveToConfiguration\n 4. Grasp\n 5. Ungrasp\n 6. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
 
@@ -30,17 +30,20 @@ void main(void) {
 			case 2 : // Inverse Kinematics 
 				InvKin(spt);
 				break;
-			case 3 : // Reset Robot 
-				ResetRobot();
-				break;
-			case 4 : // MoveToConfig
+			case 3 : // Move to Config
 				SimpleMove();
 				break;
-			case 5 : // Exit
-				return; 
+			case 4 : // Grasp
+				Grasp(true);
 				break;
-			case 6 : // fwdkin rad
+			case 5 : // UnGrasp
+				Grasp(false);
+				break;
+			case 7 : // fwdkin rad
 				FwdKinRad(joint_vals, spt);
+				break;
+			case 6 : // Exit
+				return; 
 				break;
 			default : 
 				printf("Invalid input. Please try again.\n\n\n");
@@ -450,7 +453,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// check if sum is in invalid range
 	double alpha12_p = abs(abs(alpha11_p) - DEG2RAD(360));
 	if(abs(alpha11_p) > DEG2RAD(THETA_CONS_150)) {
-		if(alpha12_p < DEG2RAD(210) && alpha12_p > DEG2RAD(150)) {
+		if(alpha12_p < DEG2RAD(A210) && alpha12_p > DEG2RAD(A150)) {
 			p_invalid = true;
 		}
 		else {
@@ -462,7 +465,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	double theta1_n = alpha11_n;
 	double alpha12_n = abs(abs(alpha11_n) - DEG2RAD(360));
 	if(abs(alpha11_n) > DEG2RAD(THETA_CONS_150)) {
-		if(alpha12_n < DEG2RAD(210) && alpha12_n > DEG2RAD(150)) {
+		if(alpha12_n < DEG2RAD(A210) && alpha12_n > DEG2RAD(A150)) {
 			n_invalid = true;
 		} 
 		else {
@@ -485,11 +488,15 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	double theta4_p = alpha41_p;
 	double alpha42_p = abs(abs(alpha41_p) - DEG2RAD(360));
 	if(abs(alpha41_p) > DEG2RAD(THETA_CONS_150)) {
-		if(alpha42_p < DEG2RAD(210) && alpha42_p > DEG2RAD(150)) {
+		if(alpha42_p < DEG2RAD(A210-0.0001) && alpha42_p > DEG2RAD(A150+0.0001)) {
 			p_invalid = true;
 		}
 		else {
 			theta4_p = (alpha41_p/abs(alpha41_p))*(abs(alpha41_p) - DEG2RAD(360));
+			//theta4_p = alpha41_p;
+			if(abs(theta4_p) > DEG2RAD(180)) {
+				theta4_p = (theta4_p/abs(theta4_p))*(theta4_p - DEG2RAD(360));
+			}
 		}
 	}
 
@@ -502,11 +509,15 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	double theta4_n = alpha41_n;
 	double alpha42_n = abs(abs(alpha41_n) - DEG2RAD(360));
 	if(abs(alpha41_n) > DEG2RAD(THETA_CONS_150)) {
-		if(alpha42_n < DEG2RAD(210) && alpha42_n > DEG2RAD(150)) {
+		if(alpha42_n < DEG2RAD(A210-0.0001) && alpha42_n > DEG2RAD(A150+0.0001)) {
 			p_invalid = true;
 		}
 		else {
 			theta4_n = (alpha41_n/abs(alpha41_n))*(abs(alpha41_n) - DEG2RAD(360));
+			// theta4_n = alpha41_n;
+			if(abs(theta4_n) > DEG2RAD(180)) {
+				theta4_n = (theta4_n/abs(theta4_n))*(theta4_n - DEG2RAD(360));
+			}
 		}
 	}
 

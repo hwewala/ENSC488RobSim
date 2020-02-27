@@ -25,6 +25,8 @@
 #define THETA_CONS_100 100
 #define D3LOWER_200 -200
 #define D3UPPER_100 -100
+#define A210 210
+#define A150 150
 
 using namespace std;
 
