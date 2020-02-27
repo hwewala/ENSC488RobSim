@@ -174,12 +174,13 @@ void InvKin(JOINT &spt) {
 		return;
 	} 
 
+	printf("phi: %f\n", phi);
 	// will probably need to print these as a loop
 	printf("FAR solutions: ");
 	printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
 
 	// print the closest solution
-	printf("\n\n"); 
+	printf("\n"); 
 	printf("NEARest solution: ");
 	printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
 
