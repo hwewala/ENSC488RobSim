@@ -50,9 +50,6 @@ void main(void) {
 			case 7 : // fwdkin rad
 				FwdKinRad(joint_vals, spt);
 				break;
-			case 6 : // Exit
-				return; 
-				break;
 			default : 
 				printf("Invalid input. Please try again.\n\n\n");
 				break;
