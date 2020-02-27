@@ -82,7 +82,8 @@ void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
 			printf("Invalid inputs! please try again.\n\n\n");
 		}
 	}
-	printf("\nYour inputs: [%f (rads), %f (rads), %f (mm), %f (rads)]\n\n", joint_vals[0], joint_vals[1], joint_vals[2], joint_vals[3]);
+	printf("\nYour inputs: [%f (rads), %f (rads), %f (mm), %f (rads)]\n", joint_vals[0], joint_vals[1], joint_vals[2], joint_vals[3]);
+	printf("Your inputs: [%f (deg), %f (deg), %f (mm), %f (deg)]\n\n", RAD2DEG(joint_vals[0]), RAD2DEG(joint_vals[1]), joint_vals[2], RAD2DEG(joint_vals[3]));
 
 	// report position and orientation of the tool (x, y, z, phi)
 	WHERE(joint_vals, spt);
@@ -453,7 +454,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta1_p = alpha11_p - DEG2RAD(360);
+			theta1_p = abs(alpha11_p) - DEG2RAD(360);
 		}
 	}
 
@@ -465,7 +466,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			n_invalid = true;
 		} 
 		else {
-			theta1_n = alpha11_n - DEG2RAD(360);
+			theta1_n = abs(alpha11_n) - DEG2RAD(360);
 		}
 		
 	}
@@ -488,7 +489,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta4_p = alpha41_p - DEG2RAD(360);
+			theta4_p = abs(alpha41_p) - DEG2RAD(360);
 		}
 	}
 
@@ -505,7 +506,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta4_n = alpha41_n - DEG2RAD(360);
+			theta4_n = abs(alpha41_n) - DEG2RAD(360);
 		}
 	}
 
