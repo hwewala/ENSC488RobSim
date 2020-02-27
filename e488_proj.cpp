@@ -424,7 +424,8 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// pow(base, exponent) for x^2 = pow(x, 2)
 	double c_theta2 = (pow(x, 2) + pow(y,2) - pow(L142, 2) - pow(L195, 2))/(2*L142*L195);
     double s_theta2 = sqrt(1 - pow(c_theta2, 2));
-    double theta2_p = atan2(s_theta2, c_theta2);
+    
+	double theta2_p = atan2(s_theta2, c_theta2);
 	if (theta2_p > THETA_CONS_100)
 		p_invalid = true;
 
@@ -443,7 +444,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double k1_n = L195 + L142*cosf(theta2_n);
     double k2_n = L142*sinf(theta2_n);
 
-    double alpha11_p = atan2f(y,x) - atan2f(k2_p, k1_p);
+    double alpha11_p = atan2(y,x) - atan2(k2_p, k1_p);
 	double theta1_p = alpha11_p;
 	// check if it's within joint limit
 
@@ -454,11 +455,11 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta1_p = abs(alpha11_p) - DEG2RAD(360);
+			theta1_p = (alpha11_p/abs(alpha11_p))*(abs(alpha11_p) - DEG2RAD(360));
 		}
 	}
 
-    double alpha11_n = atan2f(y,x) - atan2f(k2_n, k1_n);
+    double alpha11_n = atan2(y,x) - atan2(k2_n, k1_n);
 	double theta1_n = alpha11_n;
 	double alpha12_n = abs(abs(alpha11_n) - DEG2RAD(360));
 	if(abs(alpha11_n) > DEG2RAD(THETA_CONS_150)) {
@@ -466,7 +467,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			n_invalid = true;
 		} 
 		else {
-			theta1_n = abs(alpha11_n) - DEG2RAD(360);
+			theta1_n = (alpha11_n / abs(alpha11_n))*(abs(alpha11_n) - DEG2RAD(360));
 		}
 		
 	}
@@ -480,7 +481,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// }
 
 	// compute theta4
-	double phi = atan2f(s_phi, c_phi);
+	double phi = atan2(s_phi, c_phi);
     double alpha41_p = theta1_p + theta2_p - phi;
 	double theta4_p = alpha41_p;
 	double alpha42_p = abs(abs(alpha41_p) - DEG2RAD(360));
@@ -489,7 +490,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta4_p = abs(alpha41_p) - DEG2RAD(360);
+			theta4_p = (alpha41_p/abs(alpha41_p))*(abs(alpha41_p) - DEG2RAD(360));
 		}
 	}
 
@@ -506,7 +507,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta4_n = abs(alpha41_n) - DEG2RAD(360);
+			theta4_n = (alpha41_n/abs(alpha41_n))*(abs(alpha41_n) - DEG2RAD(360));
 		}
 	}
 
