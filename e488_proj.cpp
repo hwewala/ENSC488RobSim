@@ -254,12 +254,6 @@ void UTOI(JOINT &pos, TFORM &mat) {
     double s_phi = sin(phi);
     double c_phi = cos(phi);
 
-    // populate transfomation matrix
-    JOINT r1 {c_phi, -s_phi, 0, x};
-    JOINT r2 {s_phi, c_phi, 0, y};
-    JOINT r3 {0, 0, 1, z};
-    JOINT r4 {0, 0, 0, 1};
-
 	TFORM temp {{c_phi, -s_phi, 0, x},
 				{s_phi, c_phi, 0, y},
 				{0, 0, 1, z},
@@ -441,7 +435,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// 	sol = false;
 	// 	return;
 	// }
-	// compute k's for theta1
+	// compute k's for theta2
     double k1_p = L195 + L142*cosf(theta2_p);
     double k2_p = L142*sinf(theta2_p);
 
@@ -459,7 +453,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta1_p = abs(alpha11_p) - DEG2RAD(360);
+			theta1_p = alpha11_p - DEG2RAD(360);
 		}
 	}
 
@@ -471,7 +465,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			n_invalid = true;
 		} 
 		else {
-			theta1_n = abs(alpha11_n) - DEG2RAD(360);
+			theta1_n = alpha11_n - DEG2RAD(360);
 		}
 		
 	}
@@ -483,6 +477,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// 	sol = false;
 	// 	return;
 	// }
+
 	// compute theta4
 	double phi = atan2f(s_phi, c_phi);
     double alpha41_p = theta1_p + theta2_p - phi;
@@ -493,7 +488,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta4_p = abs(alpha41_p) - DEG2RAD(360);
+			theta4_p = alpha41_p - DEG2RAD(360);
 		}
 	}
 
@@ -510,7 +505,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 			p_invalid = true;
 		}
 		else {
-			theta4_n = abs(alpha41_n) - DEG2RAD(360);
+			theta4_n = alpha41_n - DEG2RAD(360);
 		}
 	}
 
@@ -522,7 +517,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	// 	return;
 	// }
 	// compute d3
-    double d3 = z - L70 + L410;
+	double d3 = -z - L410 + L70;	
 	// if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
 	// 	sol = false;
 	// 	return;
