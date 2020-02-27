@@ -584,7 +584,7 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 	int M = size(sums);
 	for (int i = 0; i < M; i++) {
 		for (int j = 0; j < N; j++) {
-			sums[i] += w[j] * (abs(near[j] - curr_pos[j]));
+			sums[i] += w[j] * (abs(itr[j] - curr_pos[j]));
 		}
 		pop_arr(far, itr);
 	}
