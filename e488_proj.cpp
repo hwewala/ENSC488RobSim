@@ -87,7 +87,7 @@ void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
 	// report position and orientation of the tool (x, y, z, phi)
 	WHERE(joint_vals, spt);
 	printf("Position and Orientation of Tool Frame (x, y, z, phi):\n");
-	print(spt);
+	printf("(%f, %f, %f, %f)\n", spt[0], spt[1], spt[2], RAD2DEG(spt[3]));
 	printf("\n\n");
 
 	return;
@@ -174,13 +174,13 @@ void InvKin(JOINT &spt) {
 	} 
 
 	// will probably need to print these as a loop
-	printf("all solutions: ");
-	print(far);
+	printf("FAR solutions: ");
+	printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
 
 	// print the closest solution
 	printf("\n\n"); 
 	printf("NEARest solution: ");
-	print(near);
+	printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
 
 	// move to closet solution
 	MoveToConfiguration(near);
