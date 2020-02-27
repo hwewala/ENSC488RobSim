@@ -166,13 +166,13 @@ void InvKin(void) {
 	} 
 
 	// will probably need to print these as a loop
-	printf("all solutions: ");
-	print(far);
+	printf("FAR solutions: ");
+	printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
 
 	// print the closest solution
 	printf("\n\n"); 
 	printf("NEARest solution: ");
-	print(near);
+	printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
 
 	// move to closet solution
 	MoveToConfiguration(near);
@@ -245,12 +245,6 @@ void UTOI(JOINT &pos, TFORM &mat) {
     // calculate parameters for transformation matrix, T
     double s_phi = sin(phi);
     double c_phi = cos(phi);
-
-    // populate transfomation matrix
-    JOINT r1 {c_phi, -s_phi, 0, x};
-    JOINT r2 {s_phi, c_phi, 0, y};
-    JOINT r3 {0, 0, 1, z};
-    JOINT r4 {0, 0, 0, 1};
 
 	TFORM temp {{c_phi, -s_phi, 0, x},
 				{s_phi, c_phi, 0, y},
