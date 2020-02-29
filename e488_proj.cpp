@@ -67,13 +67,13 @@ void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
 	while(!valid) {
 		// asks the user for joint values
 		printf("Input joint parameters:\n");
-		printf("theta1 (deg) [-150, 150]: ");
+		printf("theta1 (deg) [-%i, %i]: ", THETA1_CONS, THETA1_CONS);
 		cin >> theta1_d;
-		printf("theta2 (deg) [-100, 100]: ");
+		printf("theta2 (deg) [-%i, %i]: ", THETA2_CONS, THETA2_CONS);
 		cin >> theta2_d;
-		printf("d3 (mm) [-200, -100]: ");
+		printf("d3 (mm) [%i, %i]: ", D3LOWER_200, D3UPPER_100);
 		cin >> d3;
-		printf("theta4 (deg) [-150, 150]: ");
+		printf("theta4 (deg) [-%i, %i]: ", THETA4_CONS, THETA4_CONS);
 		cin >> theta4_d;
 
 		double theta1_r = DEG2RAD(theta1_d);
@@ -253,11 +253,11 @@ void check_joints(JOINT &joint_vals, bool &valid) {
 	double theta4 = joint_vals[3];
 
 	// define constraints
-	double theta1_cons = DEG2RAD(THETA_CONS_150);
-	double theta2_cons = DEG2RAD(THETA_CONS_100);
-	double theta4_cons = DEG2RAD(THETA_CONS_150);
+	double theta1_cons = DEG2RAD(THETA1_CONS);
+	double theta2_cons = DEG2RAD(THETA2_CONS);
+	double theta4_cons = DEG2RAD(THETA4_CONS);
 
-	// check theta1 with THETA_CONS_150
+	// check theta1 with THETA1_CONS
 	bool theta1_valid = (theta1 <= theta1_cons && theta1 >= -theta1_cons);
 	bool theta2_valid = (theta2 <= theta2_cons && theta2 >= -theta2_cons);
 	bool d3_valid = (d3 <= D3UPPER_100 && d3 >= D3LOWER_200);
@@ -460,14 +460,14 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double s_theta2 = sqrt(1 - pow(c_theta2, 2));
     
 	double theta2_p = atan2(s_theta2, c_theta2);
-	if (theta2_p > DEG2RAD(THETA_CONS_100))
+	if (theta2_p > DEG2RAD(THETA2_CONS))
 	{
 		p_invalid = true;
 		//invalid_joints[2] = theta2_p;
 	}
 
     double theta2_n = atan2(-s_theta2, c_theta2);
-	if (theta2_n < -DEG2RAD(THETA_CONS_100)) {
+	if (theta2_n < -DEG2RAD(THETA2_CONS)) {
 		n_invalid = true;
 		//invalid_joints[3] = theta2_n;
 	}
@@ -489,7 +489,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 
 	// check if sum is in invalid range
 	double alpha12_p = abs(abs(alpha11_p) - DEG2RAD(360));
-	if(abs(alpha11_p) > DEG2RAD(THETA_CONS_150)) {
+	if(abs(alpha11_p) > DEG2RAD(THETA1_CONS)) {
 		if(alpha12_p < DEG2RAD(A210) && alpha12_p > DEG2RAD(A150)) {
 			p_invalid = true;
 		}
@@ -501,7 +501,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double alpha11_n = atan2(y,x) - atan2(k2_n, k1_n);
 	double theta1_n = alpha11_n;
 	double alpha12_n = abs(abs(alpha11_n) - DEG2RAD(360));
-	if(abs(alpha11_n) > DEG2RAD(THETA_CONS_150)) {
+	if(abs(alpha11_n) > DEG2RAD(THETA1_CONS)) {
 		if(alpha12_n < DEG2RAD(A210) && alpha12_n > DEG2RAD(A150)) {
 			n_invalid = true;
 		} 
@@ -524,7 +524,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double alpha41_p = theta1_p + theta2_p - phi;
 	double theta4_p = alpha41_p;
 	double alpha42_p = abs(abs(alpha41_p) - DEG2RAD(360));
-	if(abs(alpha41_p) > DEG2RAD(THETA_CONS_150)) {
+	if(abs(alpha41_p) > DEG2RAD(THETA4_CONS)) {
 		if(alpha42_p < DEG2RAD(A210-0.0001) && alpha42_p > DEG2RAD(A150+0.0001)) {
 			p_invalid = true;
 		}
@@ -545,7 +545,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
     double alpha41_n = theta1_n + theta2_n - phi;
 	double theta4_n = alpha41_n;
 	double alpha42_n = abs(abs(alpha41_n) - DEG2RAD(360));
-	if(abs(alpha41_n) > DEG2RAD(THETA_CONS_150)) {
+	if(abs(alpha41_n) > DEG2RAD(THETA4_CONS)) {
 		if(alpha42_n < DEG2RAD(A210-0.0001) && alpha42_n > DEG2RAD(A150+0.0001)) {
 			p_invalid = true;
 		}
@@ -558,7 +558,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 		}
 	}
 
-	 if (theta4_n < -THETA_CONS_150 && n_invalid == false)
+	 if (theta4_n < -THETA4_CONS && n_invalid == false)
 	 	n_invalid = true;
 
 	 if (no_sol(p_invalid, n_invalid)) {

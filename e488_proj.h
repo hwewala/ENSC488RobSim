@@ -21,8 +21,9 @@
 #define L410 410
 #define PI 3.14159265
 #define N 4
-#define THETA_CONS_150 150
-#define THETA_CONS_100 100
+#define THETA1_CONS 150
+#define THETA2_CONS 100
+#define THETA4_CONS 160
 #define D3LOWER_200 -200
 #define D3UPPER_100 -100
 #define A210 210
