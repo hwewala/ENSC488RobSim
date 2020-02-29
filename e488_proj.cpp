@@ -346,7 +346,7 @@ void ITOU(TFORM &mat, JOINT &pos) {
     float x = mat[0][3];
     float y = mat[1][3];
     float z = mat[2][3];
-    float phi = acos(mat[0][0]);
+    float phi = atan2(mat[1][0], mat[0][0]);
 
     JOINT temp{x, y, z, phi};
 	pop_arr(temp, pos);
@@ -424,8 +424,8 @@ void KIN(JOINT &joint_vals, TFORM &wrelb) {
 					{s_phi, -c_phi, 0, L142*sin(theta1+theta2) + L195*sin(theta1)},
 					{0,     0,     -1, L70-(L410 + d3)},
 					{0, 	0, 		0, 1}};
-	pop_mat(temp, wrelb);
 
+	pop_mat(temp, wrelb);
 }
 
 void WHERE(JOINT &joint_vals, JOINT &spt) {
