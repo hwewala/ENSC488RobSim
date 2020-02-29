@@ -584,40 +584,18 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
 	// given a target position, determines the joint values 
 	// what is happening in this function?
 
-	// printf("curr_pos:");
-	// print(curr_pos);
+	printf("curr_pos:");
+	print(curr_pos);
 
 	TFORM wrels, wrelb, trels, trelb; // calculated with TMULT
 	TFORM srelb, wrelt; // inverses of global transforms
-	// get trels
-    UTOI_FLIP(tar_pos, trels); //error
-
-	// printf("trels\n");
-	// print(trels);
-
-    // get brels
-    TINVERT(brels, srelb); //
-
-	// printf("brels:\n");
-	// print(brels);
-
-	// printf("srelb:\n");
-	// print(srelb);
-
+	
+	// do matrix multiplications and transformations
+    UTOI_FLIP(tar_pos, trels); // get trels
+    TINVERT(brels, srelb); // get brels
 	TINVERT(trelw, wrelt);
-
-	// printf("trelw:\n");
-	// print(trelw);
-
-	// printf("wrelt:\n");
-	// print(wrelt);
-
 	TMULT(srelb, trels, trelb);
-    // do trelw = srelb * wrels
-    TMULT(trelb, wrelt, wrelb);
-
-	// printf("wrelb\n");
-	// print(wrelb);
+    TMULT(trelb, wrelt, wrelb); // do trelw = srelb * wrels
 
     // find nearest solution with INVKIN
     INVKIN(wrelb, tar_pos, near, far, sol);
