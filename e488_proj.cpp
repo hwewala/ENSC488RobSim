@@ -114,7 +114,7 @@ void FwdKinRad(JOINT &joint_vals, JOINT &spt) {
 		cin >> theta1;
 		printf("theta2 (rad): ");
 		cin >> theta2;
-		printf("d3 (mm) [-200, -100]: ");
+		printf("d3 (mm) [%i, %i]: ", D3LOWER_200, D3UPPER_100);
 		cin >> d3;
 		printf("theta4 (rad): ");
 		cin >> theta4;
@@ -174,33 +174,45 @@ void InvKin(JOINT &spt) {
 	c_pos[0] = DEG2RAD(c_pos[0]);
 	c_pos[1] = DEG2RAD(c_pos[1]);
 	c_pos[3] = DEG2RAD(c_pos[3]);
-	SOLVE(t_pos, c_pos, near, far, sol);
+	bool p_val, n_val;
+	SOLVE(t_pos, c_pos, near, far, p_val, n_val);
 
-	if(!sol) {
+	if(!p_val && !n_val) {
 		// no solution exists!
 		printf("No solution exists!\n\n");
-		
-		// will probably need to print these as a loop
-		printf("FAR solutions: ");
-		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
 
-		// print the closest solution
-		printf("\n");
-		printf("NEARest solution: ");
-		printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
+		printf("Invalid solutions:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
+		printf("(%f, %f, %f, %f)\n\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
 
 		return;
-	} 
+	}
+	else if(p_val && !n_val){
+		// p is valid and n is invalid
+		printf("Invalid solution:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
 
-	printf("phi: %f\n", phi);
-	// will probably need to print these as a loop
-	printf("FAR solutions: ");
-	printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
+		printf("NEARest solution:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
+	}
+	else if(!p_val && n_val) {
+		// p is invalid and n is valid
+		printf("Invalid solution:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
 
-	// print the closest solution
-	printf("\n"); 
-	printf("NEARest solution: ");
-	printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
+		printf("NEARest solution:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
+	}
+	else {
+		printf("Current position:\n");
+		print(c_pos);
+
+		printf("Far solution:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
+
+		printf("NEARest solution:\n");
+		printf("(%f, %f, %f, %f)\n", RAD2DEG(near[0]), RAD2DEG(near[1]), near[2], RAD2DEG(near[3]));
+	}
 
 	// move to closet solution
 	near[0] = RAD2DEG(near[0]);
@@ -441,7 +453,7 @@ void WHERE(JOINT &joint_vals, JOINT &spt) {
 
 // Part 3: Inverse Kinematics
 
-void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
+void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
 	// finds the inverse kinematics for the robot, then compares the solutions with the curr_pos to 
 	// find the nearest solution
 	// exclude solutions with bad joint values
@@ -453,29 +465,14 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 	double s_phi = wrelb[0][1];
 	bool p_invalid = false;
 	bool n_invalid = false;
-	sol = true;
-	//double invalid_joints[8];
+
 	// pow(base, exponent) for x^2 = pow(x, 2)
 	double c_theta2 = (pow(x, 2) + pow(y,2) - pow(L142, 2) - pow(L195, 2))/(2*L142*L195);
     double s_theta2 = sqrt(1 - pow(c_theta2, 2));
     
 	double theta2_p = atan2(s_theta2, c_theta2);
-	if (theta2_p > DEG2RAD(THETA2_CONS))
-	{
-		p_invalid = true;
-		//invalid_joints[2] = theta2_p;
-	}
-
     double theta2_n = atan2(-s_theta2, c_theta2);
-	if (theta2_n < -DEG2RAD(THETA2_CONS)) {
-		n_invalid = true;
-		//invalid_joints[3] = theta2_n;
-	}
 
-	if (no_sol(p_invalid, n_invalid)) {
-		sol = false;
-	// 	return;
-	 }
 	// compute k's for theta2
     double k1_p = L195 + L142*cosf(theta2_p);
     double k2_p = L142*sinf(theta2_p);
@@ -485,7 +482,6 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 
     double alpha11_p = atan2(y,x) - atan2(k2_p, k1_p);
 	double theta1_p = alpha11_p;
-	// check if it's within joint limit
 
 	// check if sum is in invalid range
 	double alpha12_p = abs(abs(alpha11_p) - DEG2RAD(360));
@@ -508,16 +504,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 		else {
 			theta1_n = (alpha11_n / abs(alpha11_n))*(abs(alpha11_n) - DEG2RAD(360));
 		}
-		
 	}
-
-	//valid alpha_n, alpha_p value
-
-
-	 if (no_sol(p_invalid, n_invalid)) {
-	 	sol = false;
-	// 	return;
-	 }
 
 	// compute theta4
 	double phi = atan2(s_phi, c_phi);
@@ -530,17 +517,11 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 		}
 		else {
 			theta4_p = (alpha41_p/abs(alpha41_p))*(abs(alpha41_p) - DEG2RAD(360));
-			//theta4_p = alpha41_p;
 			if(abs(theta4_p) > DEG2RAD(180)) {
 				theta4_p = (theta4_p/abs(theta4_p))*(theta4_p - DEG2RAD(360));
 			}
 		}
 	}
-
-	// if (theta4_p > THETA_CONS_150 && p_invalid == false)
-	// 	p_invalid = true;
-
-	
 
     double alpha41_n = theta1_n + theta2_n - phi;
 	double theta4_n = alpha41_n;
@@ -551,41 +532,28 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
 		}
 		else {
 			theta4_n = (alpha41_n/abs(alpha41_n))*(abs(alpha41_n) - DEG2RAD(360));
-			// theta4_n = alpha41_n;
 			if(abs(theta4_n) > DEG2RAD(180)) {
 				theta4_n = (theta4_n/abs(theta4_n))*(theta4_n - DEG2RAD(360));
 			}
 		}
 	}
 
-	 if (theta4_n < -THETA4_CONS && n_invalid == false)
-	 	n_invalid = true;
-
-	 if (no_sol(p_invalid, n_invalid)) {
-	 	sol = false;
-	 	//return;
-	 }
 	// compute d3
 	double d3 = -z - L410 + L70;	
-	 if (d3 < D3LOWER_200 || d3 > D3UPPER_100) {
-	 	sol = false;
-	// 	return;
-	 }
+	
 	JOINT jp{theta1_p, theta2_p, d3, theta4_p};
 	JOINT jn{theta1_n, theta2_n, d3, theta4_n};
 
+	// check joint values
+	check_joints(jp, p_val);
+	check_joints(jn, n_val);
+
 	pop_arr(jp, near);
 	pop_arr(jn, far);
-
-
 }
 
-void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) {
+void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
 	// given a target position, determines the joint values 
-	// what is happening in this function?
-
-	printf("curr_pos:");
-	print(curr_pos);
 
 	TFORM wrels, wrelb, trels, trelb; // calculated with TMULT
 	TFORM srelb, wrelt; // inverses of global transforms
@@ -598,28 +566,31 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol) 
     TMULT(trelb, wrelt, wrelb); // do trelw = srelb * wrels
 
     // find nearest solution with INVKIN
-    INVKIN(wrelb, tar_pos, near, far, sol);
+    INVKIN(wrelb, tar_pos, near, far, p_val, n_val);
 
 	// sum of differences between current and final joint position for a given solution is stored in each index
 	// size 2 is hardcoded since we only get two solutions
-	float sums[2] = { 0, 0 };
-	// temp used for swapping near and far, itr used to iterate over near and far values when computing sums
-	JOINT temp, itr;
-	pop_arr(near, itr);
-	// weights for each joint
-	float w[4] = { 1, 1, 1, 1 };
-	int M = size(sums);
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			sums[i] += w[j] * (abs(itr[j] - curr_pos[j]));
+	// only check if both solutions are valid
+	if(p_val && n_val) {
+		float sums[2] = { 0, 0 };
+		// temp used for swapping near and far, itr used to iterate over near and far values when computing sums
+		JOINT temp, itr;
+		pop_arr(near, itr);
+		// weights for each joint
+		float w[4] = { 1, 1, 1, 1 };
+		int M = size(sums);
+		for (int i = 0; i < M; i++) {
+			for (int j = 0; j < N; j++) {
+				sums[i] += w[j] * (abs(itr[j] - curr_pos[j]));
+			}
+			pop_arr(far, itr);
 		}
-		pop_arr(far, itr);
-	}
-	//swap near and far if it is the closer joint
-	if (sums[1] < sums[0]){
-		pop_arr(near, temp);
-		pop_arr(far, near);
-		pop_arr(temp, far);
+		//swap near and far if it is the closer joint
+		if (sums[1] < sums[0]){
+			pop_arr(near, temp);
+			pop_arr(far, near);
+			pop_arr(temp, far);
+		}
 	}
 }
 

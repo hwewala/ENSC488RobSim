@@ -63,8 +63,8 @@ void KIN(JOINT &joint_vals, TFORM &wrelb);
 void WHERE(JOINT &joint_vals, JOINT &spt);
 
 // Inverse Kinematics
-void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol);
-void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &sol);
+void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val, bool &n_val);
+void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val, bool &n_val);
 
 // Helper functions
 int arr_size(JOINT &arr);
