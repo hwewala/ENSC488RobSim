@@ -763,13 +763,13 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	a0 = theta0;
 	a1 = vel0;
 	a2 = (3/pow(tf, 2))*(thetaf - theta0) - (2/tf)*vel0 - (1/tf)*velf;
-	a3 = -(2/pow(tf, 3))*(thetaf - theta0) + (2/pow(tf, 2))*(velf + vel0);
+	a3 = -(2/pow(tf, 3))*(thetaf - theta0) + (1/pow(tf, 2))*(velf + vel0);
 
 	JOINT test{a0, a1, a2, a3};
 	pop_arr(test, coeff);
 }
 
-void PATHGEN(double t, double vel, TFORM &G, TFORM &A, TFORM &B, TFORM &C) {
+void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	/* 	Computes the path trajectory of a given set of points (max. 5)
 		Inputs: 
 			- t: total time for motion (user-specified)
@@ -789,12 +789,13 @@ void PATHGEN(double t, double vel, TFORM &G, TFORM &A, TFORM &B, TFORM &C) {
 					in such a way as to cause the acceleration at the via points 
 					to be continuous
 	*/
-	// convert all tool frames to joint values
-	JOINT g_pos, a_pos, b_pos, c_pos;
-	ITOU(G, g_pos);
+	// convert all tool frames to position + orientation of frames (x, y, z, phi)
+	JOINT a_pos, b_pos, c_pos, g_pos;
+	
 	ITOU(A, a_pos);
 	ITOU(B, b_pos);
 	ITOU(C, c_pos);
+	ITOU(G, g_pos);
 
 	// compute inverse kinematics for each position
 	JOINT curr_pos;
@@ -802,18 +803,12 @@ void PATHGEN(double t, double vel, TFORM &G, TFORM &A, TFORM &B, TFORM &C) {
 	curr_pos[0] = DEG2RAD(curr_pos[0]);
 	curr_pos[1] = DEG2RAD(curr_pos[1]);
 	curr_pos[3] = DEG2RAD(curr_pos[3]);
-	
-	// current pos to G
-	JOINT g_near, g_far;
-	bool gp = false;
-	bool gn = false;
-	SOLVE(g_pos, curr_pos, g_near, g_far, gp, gn);
 
-	// G to A
+	// current pos to A
 	JOINT a_near, a_far;
 	bool ap = false;
 	bool an = false;
-	SOLVE(a_pos, g_pos, a_near, a_far, ap, an);
+	SOLVE(a_pos, curr_pos, a_near, a_far, ap, an);
 
 	// A to B
 	JOINT b_near, b_far;
@@ -827,64 +822,73 @@ void PATHGEN(double t, double vel, TFORM &G, TFORM &A, TFORM &B, TFORM &C) {
 	bool cn = false;
 	SOLVE(c_pos, b_pos, c_near, c_far, cp, cn);
 
-	/*now that we have all of the joint values for positions: G, A, B, C, compute 
+	// C to G
+	JOINT g_near, g_far;
+	bool gp = false;
+	bool gn = false;
+	SOLVE(g_pos, c_pos, g_near, g_far, gp, gn);
+
+	/*now that we have all of the joint values for positions: A, B, C, G compute 
 	the cubic spline interpolation for each of the joints*/
 
 	// but first, separate the all the joint values for one joint to a given array
 	JOINT j1, j2, j3, j4;
-	get_jv(1, g_near, a_near, b_near, c_near, j1);
-	get_jv(2, g_near, a_near, b_near, c_near, j2);
-	get_jv(3, g_near, a_near, b_near, c_near, j3);
-	get_jv(4, g_near, a_near, b_near, c_near, j4);
+	get_jv(1, a_near, b_near, c_near, g_near, j1);
+	get_jv(2, a_near, b_near, c_near, g_near, j2);
+	get_jv(3, a_near, b_near, c_near, g_near, j3);
+	get_jv(4, a_near, b_near, c_near, g_near, j4);
 
 	/*now that we have the joint values per joint, compute cubic spline for each
 	of the different locations*/
 
 	// cubic coefficients for theta1
-	JOINT ga1, ab1, bc1;
-	compute_coeff(j1, t, vel, ga1, ab1, bc1);
+	JOINT ab1, bc1, cg1;
+	compute_coeff(j1, t, vel, ab1, bc1, cg1);
 
 	// cubic coefficients for theta2
-	JOINT ga2, ab2, bc2;
-	compute_coeff(j2, t, vel, ga2, ab2, bc2);
+	JOINT ab2, bc2, cg2;
+	compute_coeff(j2, t, vel, ab2, bc2, cg2);
 
 	// cubic coefficients for d3
-	JOINT ga3, ab3, bc3;
-	compute_coeff(j3, t, vel, ga3, ab3, bc3);
+	JOINT ab3, bc3, cg3;
+	compute_coeff(j3, t, vel, ab3, bc3, cg3);
 
 	// cubic coefficients for theta4
-	JOINT ga4, ab4, bc4;
-	compute_coeff(j4, t, vel, ga4, ab4, bc4);
+	//JOINT ga4, ab4, bc4;
+	JOINT ab4, bc4, cg4;
+	compute_coeff(j4, t, vel, ab4, bc4, cg4);
 
 	// DEBUG: plot trajectories (position, velocity, acceleration) for each of the joints
 }
 
-void get_jv(int idx, JOINT &g_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT &joint) {
-	// gets the joint values for IDX points G, A, B, C. ie. if IDX = 1, gets the 
+void get_jv(int idx, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, JOINT &joint) {
+	// gets the joint values for IDX points A, B, C, G. ie. if IDX = 1, gets the 
 	// joint1 values and saves it in joint
 	int idx_arr = idx - 1;
-	double g_val, a_val, b_val, c_val;
-	g_val = g_joint[idx_arr];
+	double a_val, b_val, c_val, g_val;
 	a_val = a_joint[idx_arr];
 	b_val = b_joint[idx_arr];
 	c_val = c_joint[idx_arr];
+	g_val = g_joint[idx_arr];
 
-	JOINT vals{g_val, a_val, b_val, c_val};
+	JOINT vals{a_val, b_val, c_val, g_val};
 	pop_arr(vals, joint);
 }
 
-void compute_coeff(JOINT &j, double t, double vel, JOINT &ga, JOINT &ab, JOINT &bc) {
+void compute_coeff(JOINT &j, double t, double vel, JOINT &ab, JOINT &bc, JOINT &cg) {
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes G -> A -> B -> C
+
+	// Assumes A -> B -> C -> G
 	double t1, t2, t3;
-	
-	// G -> A
-	CUBCOEF(j[0], j[1], 0, vel, t1, ga);
 
 	// A -> B
-	CUBCOEF(j[1], j[2], vel, vel, t2, ab);
-	
+	CUBCOEF(j[0], j[1], 0, vel, t1, ab);
+
 	// B -> C
-	CUBCOEF(j[2], j[3], vel, 0, t3, bc);
+	CUBCOEF(j[1], j[2], vel, vel, t2, bc);
+
+	// C -> G
+	CUBCOEF(j[2], j[3], vel, 0, t3, cg);
 }
