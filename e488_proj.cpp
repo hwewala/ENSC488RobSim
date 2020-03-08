@@ -751,3 +751,20 @@ bool no_sol(bool p_invalid, bool n_invalid) {
 	}
 	return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//									DEMO 2		  							  //
+////////////////////////////////////////////////////////////////////////////////
+void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff) {
+	// Calculates the cubic coefficients
+	// Assumes constant velocity between points
+	// See eqn 7.11 of text (pg 207 of text OR 215/408 of pdfr)
+	double a0, a1, a2, a3;
+	a0 = theta0;
+	a1 = vel0;
+	a2 = (3/pow(tf, 2))*(thetaf - theta0) - (2/tf)*vel0 - (1/tf)*velf;
+	a3 = -(2/pow(tf, 3))*(thetaf - theta0) + (2/pow(tf, 2))*(velf + vel0);
+
+	JOINT test{a0, a1, a2, a3};
+	pop_arr(test, coeff);
+}

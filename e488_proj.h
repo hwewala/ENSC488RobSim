@@ -84,3 +84,6 @@ void padd(POS &pos1, POS &pos2, POS &res);
 void tconst(RFORM &rmat, POS &pos, TFORM &tmat);
 void transpose_mat(RFORM &rmat, RFORM &imat);
 bool no_sol(bool p_invalid, bool n_invalid);
+
+// Demo 2
+void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff)
