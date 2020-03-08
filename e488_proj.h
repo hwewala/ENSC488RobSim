@@ -33,6 +33,7 @@ using namespace std;
 
 typedef double TFORM[4][4];
 typedef double RFORM[3][3];
+typedef double CFORM[3][4];
 typedef double POS[3];
 
 JOINT T{0, 0, L135, 0};
@@ -86,4 +87,7 @@ void transpose_mat(RFORM &rmat, RFORM &imat);
 bool no_sol(bool p_invalid, bool n_invalid);
 
 // Demo 2
-void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff)
+void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
+void PATHGEN(double t, TFORM &G, TFORM &A, TFORM &B, TFORM &C);
+void get_jv(int idx, JOINT &g_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT &joint);
+void compute_coeff(JOINT &j, double t, double vel, JOINT &ga, JOINT &ab, JOINT &bc);

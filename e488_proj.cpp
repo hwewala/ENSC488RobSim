@@ -768,3 +768,123 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	JOINT test{a0, a1, a2, a3};
 	pop_arr(test, coeff);
 }
+
+void PATHGEN(double t, double vel, TFORM &G, TFORM &A, TFORM &B, TFORM &C) {
+	/* 	Computes the path trajectory of a given set of points (max. 5)
+		Inputs: 
+			- t: total time for motion (user-specified)
+			- G, A, B, C: DIFFERENT Tool frames WRT the Station frame
+
+		DEBUG: Need error checking to see if any of the points are out of the workspace
+		DEBUG: Not worrying about velocity right now, need to implement later. 
+			See options below
+			- Options:
+				1. 	The user specifies the desired velocity at each via point in 
+					terms of a Cartesian linear and angular velocity of the tool 
+					frame at that instant
+				2. 	The system automatically chooses the velocity at the via points 
+					by applying a suitable heuristic in either Cartesian space, 
+					or joint space 
+				3. 	The system automatically chooses the velocities at the via point 
+					in such a way as to cause the acceleration at the via points 
+					to be continuous
+	*/
+	// convert all tool frames to joint values
+	JOINT g_pos, a_pos, b_pos, c_pos;
+	ITOU(G, g_pos);
+	ITOU(A, a_pos);
+	ITOU(B, b_pos);
+	ITOU(C, c_pos);
+
+	// compute inverse kinematics for each position
+	JOINT curr_pos;
+	GetConfiguration(curr_pos);
+	curr_pos[0] = DEG2RAD(curr_pos[0]);
+	curr_pos[1] = DEG2RAD(curr_pos[1]);
+	curr_pos[3] = DEG2RAD(curr_pos[3]);
+	
+	// current pos to G
+	JOINT g_near, g_far;
+	bool gp = false;
+	bool gn = false;
+	SOLVE(g_pos, curr_pos, g_near, g_far, gp, gn);
+
+	// G to A
+	JOINT a_near, a_far;
+	bool ap = false;
+	bool an = false;
+	SOLVE(a_pos, g_pos, a_near, a_far, ap, an);
+
+	// A to B
+	JOINT b_near, b_far;
+	bool bp = false;
+	bool bn = false;
+	SOLVE(b_pos, a_pos, b_near, b_far, bp, bn);
+
+	// B to C
+	JOINT c_near, c_far;
+	bool cp = false;
+	bool cn = false;
+	SOLVE(c_pos, b_pos, c_near, c_far, cp, cn);
+
+	/*now that we have all of the joint values for positions: G, A, B, C, compute 
+	the cubic spline interpolation for each of the joints*/
+
+	// but first, separate the all the joint values for one joint to a given array
+	JOINT j1, j2, j3, j4;
+	get_jv(1, g_near, a_near, b_near, c_near, j1);
+	get_jv(2, g_near, a_near, b_near, c_near, j2);
+	get_jv(3, g_near, a_near, b_near, c_near, j3);
+	get_jv(4, g_near, a_near, b_near, c_near, j4);
+
+	/*now that we have the joint values per joint, compute cubic spline for each
+	of the different locations*/
+
+	// cubic coefficients for theta1
+	JOINT ga1, ab1, bc1;
+	compute_coeff(j1, t, vel, ga1, ab1, bc1);
+
+	// cubic coefficients for theta2
+	JOINT ga2, ab2, bc2;
+	compute_coeff(j2, t, vel, ga2, ab2, bc2);
+
+	// cubic coefficients for d3
+	JOINT ga3, ab3, bc3;
+	compute_coeff(j3, t, vel, ga3, ab3, bc3);
+
+	// cubic coefficients for theta4
+	JOINT ga4, ab4, bc4;
+	compute_coeff(j4, t, vel, ga4, ab4, bc4);
+
+	// DEBUG: plot trajectories (position, velocity, acceleration) for each of the joints
+}
+
+void get_jv(int idx, JOINT &g_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT &joint) {
+	// gets the joint values for IDX points G, A, B, C. ie. if IDX = 1, gets the 
+	// joint1 values and saves it in joint
+	int idx_arr = idx - 1;
+	double g_val, a_val, b_val, c_val;
+	g_val = g_joint[idx_arr];
+	a_val = a_joint[idx_arr];
+	b_val = b_joint[idx_arr];
+	c_val = c_joint[idx_arr];
+
+	JOINT vals{g_val, a_val, b_val, c_val};
+	pop_arr(vals, joint);
+}
+
+void compute_coeff(JOINT &j, double t, double vel, JOINT &ga, JOINT &ab, JOINT &bc) {
+	// takes the joint values, and computes the cubic coefficients between subsequent 
+	// joint values
+	// Assumes G -> A -> B -> C
+	double t1, t2, t3;
+	
+	// G -> A
+	CUBCOEF(j[0], j[1], 0, vel, t1, ga);
+
+	// A -> B
+	CUBCOEF(j[1], j[2], vel, vel, t2, ab);
+	
+	// B -> C
+	CUBCOEF(j[2], j[3], vel, 0, t3, bc);
+}
