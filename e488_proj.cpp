@@ -1008,7 +1008,6 @@ void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c
 	g_val = g_joint[idx_arr];
 
 	ARR5 vals{curr_val, a_val, b_val, c_val, g_val};
-	print(vals);
 	pop_arr(vals, joint);
 }
 
