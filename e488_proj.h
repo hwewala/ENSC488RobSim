@@ -54,6 +54,7 @@ void check_joints(JOINT &joint_vals, bool &valid);
 void ToggleGripper(bool& status);
 void TrajPlanPos(void);
 void TrajPlanJoint(void);
+void TrajCust(void);
 
 // functions for class
 // Basic Matrix Transformation Procedures

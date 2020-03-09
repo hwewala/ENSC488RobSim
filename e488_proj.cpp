@@ -61,8 +61,8 @@ void main(void) {
 			case 8 : // Exit
 				return; 
 				break;
-			case 9 : // fwdkin rad
-				FwdKinRad(joint_vals, spt);
+			case 9 : // Custom
+				TrajCust();
 				break;
 			default : 
 				printf("Invalid input. Please try again.\n\n\n");
@@ -73,7 +73,7 @@ void main(void) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//									UI										  //
+//									UInterface								  //
 ////////////////////////////////////////////////////////////////////////////////
 // Part 0: Menu Operations
 void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
@@ -423,6 +423,74 @@ void TrajPlanJoint(void) {
 	cin >> j3g;
 	printf("theta4 (deg) [-%i, %i]: ", THETA4_CONS, THETA4_CONS);
 	cin >> j4g;
+	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
+	bool g_valid = false;
+	check_joints(jg, g_valid);
+	if(!g_valid) return;
+
+	JOINT a_pos, b_pos, c_pos, g_pos;
+	WHERE(ja, a_pos);
+	WHERE(jb, b_pos);
+	WHERE(jc, c_pos);
+	WHERE(jg, g_pos);
+
+	TFORM a_mat, b_mat, c_mat, g_mat;
+	UTOI_FLIP(a_pos, a_mat);
+	UTOI_FLIP(b_pos, b_mat);
+	UTOI_FLIP(c_pos, c_mat);
+	UTOI_FLIP(g_pos, g_mat);
+
+	printf("\nPlanning the Trajectory!\n");
+	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+}
+
+void TrajCust(void) {
+	// Trajectory Planning with input of joint values
+	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
+
+	// get total time of manipulator motion
+	double t = 15;
+	printf("Time for motion (s): %f\n", t);
+
+	// get velocity between via points
+	double vel = 5;
+	printf("Velocity between via points: %f\n", vel);
+
+	double j1a, j2a, j3a, j4a;
+	j1a = 100;
+	j2a = 95;
+	j3a = -101;
+	j4a = 0;
+	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
+	bool a_valid = false;
+	check_joints(ja, a_valid);
+	if(!a_valid) return;
+
+	double j1b, j2b, j3b, j4b;
+	j1b = -100;
+	j2b = -50;
+	j3b = -125;
+	j4b = 0;
+	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
+	bool b_valid = false;
+	check_joints(jb, b_valid);
+	if(!b_valid) return;
+
+	double j1c, j2c, j3c, j4c;
+	j1c = -100;
+	j2c = 50;
+	j3c = -150;
+	j4c = 100;
+	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
+	bool c_valid = false;
+	check_joints(jc, c_valid);
+	if(!c_valid) return;
+
+	double j1g, j2g, j3g, j4g;
+	j1g = 50;
+	j2g = -50;
+	j3g = -175;
+	j4g = 125;
 	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
 	bool g_valid = false;
 	check_joints(jg, g_valid);
