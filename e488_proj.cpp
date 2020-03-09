@@ -7,10 +7,13 @@ void main(void) {
 	/* Menu Options:
 	1. Forward Kinematics
 	2. Inverse Kinematics
-	3. Stop+Reset Robot
-	4. Close Gripper
-	5. Move To Config
-	6. Exit
+	3. Trajectory Planning (x, y, z, phi)
+	4. Trajectory Planning (theta1, theta2, d3, theta4)
+	5. Stop+Reset Robot
+	6. Close Gripper
+	7. Move To Config
+	8. Exit
+	9. Custom 
 	*/
 
 	int user_input;
@@ -30,7 +33,8 @@ void main(void) {
 				" 5. Stop+Reset Robot\n"
 				" 6. Toggle Gripper\n"
 				" 7. MoveToConfiguration\n"
-				" 8. Exit\n");
+				" 8. Trajectory Planning (custom)\n"
+				"\n 0. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
 
@@ -58,11 +62,11 @@ void main(void) {
 			case 7 : // MoveToConfig
 				SimpleMove();
 				break;
-			case 8 : // Exit
-				return; 
-				break;
-			case 9 : // Custom
+			case 8 : // Custom
 				TrajCust();
+				break;
+			case 0 : // Exit
+				return; 
 				break;
 			default : 
 				printf("Invalid input. Please try again.\n\n\n");
