@@ -1157,6 +1157,8 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	if(debug) {
 		printf("\n--Cubic Coefficients--\n");
 		printf("theta1:\n");
+		printf("0 -> A: ");
+		print(curra1);
 		printf("A -> B: ");
 		print(ab1);
 		printf("B -> C: ");
@@ -1164,6 +1166,8 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 		printf("C -> G: ");
 		print(cg1);
 		printf("theta2:\n");
+		printf("0 -> A: ");
+		print(curra2);
 		printf("A -> B: ");
 		print(ab2);
 		printf("B -> C: ");
@@ -1171,6 +1175,8 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 		printf("C -> G: ");
 		print(cg1);
 		printf("d3:\n");
+		printf("0 -> A: ");
+		print(curra3);
 		printf("A -> B: ");
 		print(ab3);
 		printf("B -> C: ");
@@ -1178,6 +1184,8 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 		printf("C -> G: ");
 		print(cg1);
 		printf("theta4:\n");
+		printf("0 -> A: ");
+		print(curra4);
 		printf("A -> B: ");
 		print(ab4);
 		printf("B -> C: ");
