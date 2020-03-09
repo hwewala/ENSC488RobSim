@@ -959,6 +959,8 @@ void compute_coeff(JOINT& j, double t, double vel, JOINT& ab, JOINT& bc, JOINT& 
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes A -> B -> C -> G
+
+	// DEBUG: figure out way to compute t1, t2, t3
 	double t1 = 0;
 	double t2 = 0;
 	double t3 = 0;
