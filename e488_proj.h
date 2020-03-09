@@ -51,7 +51,8 @@ void InvKin(JOINT &spt);
 void SimpleMove(void);
 void check_joints(JOINT &joint_vals, bool &valid);
 void ToggleGripper(bool& status);
-void TrajPlan(void);
+void TrajPlanPos(void);
+void TrajPlanJoint(void);
 
 // functions for class
 // Basic Matrix Transformation Procedures
@@ -90,6 +91,6 @@ bool no_sol(bool p_invalid, bool n_invalid);
 
 // Demo 2
 void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
-void PATHGEN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G);
+void PATHGEN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
 void get_jv(int idx, JOINT& a_joint, JOINT& b_joint, JOINT& c_joint, JOINT& g_joint, JOINT& joint);
 void compute_coeff(JOINT&j, double t, double vel, JOINT&ab, JOINT&bc, JOINT&cg);

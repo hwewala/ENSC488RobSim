@@ -25,11 +25,12 @@ void main(void) {
 		printf("\nPlease choose a number:\n"
 				" 1. Forward Kinematics\n"
 				" 2. Inverse Kinematics\n"
-				" 3. Trajectory Planning\n"
-				" 4. Stop+Reset Robot\n"
-				" 5. Toggle Gripper\n"
-				" 6. MoveToConfiguration\n"
-				" 7. Exit\n");
+				" 3. Trajectory Planning (x, y, z, phi)\n"
+				" 4. Trajectory Planning (joint values)\n"
+				" 5. Stop+Reset Robot\n"
+				" 6. Toggle Gripper\n"
+				" 7. MoveToConfiguration\n"
+				" 8. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
 
@@ -40,24 +41,27 @@ void main(void) {
 			case 2 : // Inverse Kinematics 
 				InvKin(spt);
 				break;
-			case 3 : // Trajectory Planner
-				TrajPlan();
+			case 3 : // Trajectory Planner (x, y, z, phi)
+				TrajPlanPos();
 				break;
-			case 4 : // Stop Robot
+			case 4 : // Trajectory Planner (joint vals)
+				TrajPlanJoint();
+				break;
+			case 5 : // Stop Robot
 				printf("Stopping and Resetting Robot\n");
 				StopRobot();
 				ResetRobot();
 				break;
-			case 5 : // Toggle Gripper
+			case 6 : // Toggle Gripper
 				ToggleGripper(gripper_status);
 				break;
-			case 6 : // MoveToConfig
+			case 7 : // MoveToConfig
 				SimpleMove();
 				break;
-			case 7 : // Exit
+			case 8 : // Exit
 				return; 
 				break;
-			case 8 : // fwdkin rad
+			case 9 : // fwdkin rad
 				FwdKinRad(joint_vals, spt);
 				break;
 			default : 
@@ -269,11 +273,11 @@ void ToggleGripper(bool &status) {
 	Grasp(status);
 }
 
-void TrajPlan(void) {
+void TrajPlanPos(void) {
 	// Asks the user for a total time, velocity (???), set of points
 	// DEBUG: 	for now, just get the user to input positions (x, y, z, phi) for 
 	//			the different frames: A, B, C, G
-	printf("Trajectory Planning\n");
+	printf("Trajectory Planning w/ (x, y, z, phi)\n");
 
 	// get total time of manipulator motion
 	double t;
@@ -347,7 +351,97 @@ void TrajPlan(void) {
 
 	// Call PATHGEN
 	printf("Planning the Trajectory!\n");
-	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat);
+	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+}
+
+void TrajPlanJoint(void) {
+	// Trajectory Planning with input of joint values
+	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
+
+	// get total time of manipulator motion
+	double t;
+	printf("Time for motion (s): ");
+	cin >> t;
+
+	// get velocity between via points
+	double vel;
+	printf("Velocity between via points: ");
+	cin >> vel;
+
+	double j1a, j2a, j3a, j4a;
+	printf("\nA:\n");
+	printf("theta1 (deg) [-%i, %i]: ", THETA1_CONS, THETA1_CONS);
+	cin >> j1a;
+	printf("theta2 (deg) [-%i, %i]: ", THETA2_CONS, THETA2_CONS);
+	cin >> j2a;
+	printf("d3 (mm) [%i, %i]: ", D3LOWER_200, D3UPPER_100);
+	cin >> j3a;
+	printf("theta4 (deg) [-%i, %i]: ", THETA4_CONS, THETA4_CONS);
+	cin >> j4a;
+	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
+	bool a_valid = false;
+	check_joints(ja, a_valid);
+	if(!a_valid) return;
+
+	double j1b, j2b, j3b, j4b;
+	printf("\nB:\n");
+	printf("theta1 (deg) [-%i, %i]: ", THETA1_CONS, THETA1_CONS);
+	cin >> j1b;
+	printf("theta2 (deg) [-%i, %i]: ", THETA2_CONS, THETA2_CONS);
+	cin >> j2b;
+	printf("d3 (mm) [%i, %i]: ", D3LOWER_200, D3UPPER_100);
+	cin >> j3b;
+	printf("theta4 (deg) [-%i, %i]: ", THETA4_CONS, THETA4_CONS);
+	cin >> j4b;
+	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
+	bool b_valid = false;
+	check_joints(jb, b_valid);
+	if(!b_valid) return;
+
+	double j1c, j2c, j3c, j4c;
+	printf("\nC:\n");
+	printf("theta1 (deg) [-%i, %i]: ", THETA1_CONS, THETA1_CONS);
+	cin >> j1c;
+	printf("theta2 (deg) [-%i, %i]: ", THETA2_CONS, THETA2_CONS);
+	cin >> j2c;
+	printf("d3 (mm) [%i, %i]: ", D3LOWER_200, D3UPPER_100);
+	cin >> j3c;
+	printf("theta4 (deg) [-%i, %i]: ", THETA4_CONS, THETA4_CONS);
+	cin >> j4c;
+	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
+	bool c_valid = false;
+	check_joints(jc, c_valid);
+	if(!c_valid) return;
+
+	double j1g, j2g, j3g, j4g;
+	printf("\nG:\n");
+	printf("theta1 (deg) [-%i, %i]: ", THETA1_CONS, THETA1_CONS);
+	cin >> j1g;
+	printf("theta2 (deg) [-%i, %i]: ", THETA2_CONS, THETA2_CONS);
+	cin >> j2g;
+	printf("d3 (mm) [%i, %i]: ", D3LOWER_200, D3UPPER_100);
+	cin >> j3g;
+	printf("theta4 (deg) [-%i, %i]: ", THETA4_CONS, THETA4_CONS);
+	cin >> j4g;
+	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
+	bool g_valid = false;
+	check_joints(jg, g_valid);
+	if(!g_valid) return;
+
+	JOINT a_pos, b_pos, c_pos, g_pos;
+	WHERE(ja, a_pos);
+	WHERE(jb, b_pos);
+	WHERE(jc, c_pos);
+	WHERE(jg, g_pos);
+
+	TFORM a_mat, b_mat, c_mat, g_mat;
+	UTOI_FLIP(a_pos, a_mat);
+	UTOI_FLIP(b_pos, b_mat);
+	UTOI_FLIP(c_pos, c_mat);
+	UTOI_FLIP(g_pos, g_mat);
+
+	printf("Planning the Trajectory!\n");
+	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -670,6 +764,7 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_joint, JOINT &near, JOINT &far, bool &p_v
 		// weights for each joint
 		float w[4] = { 1, 1, 1, 1 };
 		int M = size(sums);
+
 		for (int i = 0; i < M; i++) {
 			for (int j = 0; j < N; j++) {
 				sums[i] += w[j] * (abs(itr[j] - curr_joint[j]));
@@ -860,7 +955,7 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
-void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
+void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
 	/* 	Computes the path trajectory of a given set of points (max. 5)
 		Inputs: 
 			- t: total time for motion (user-specified)
@@ -887,6 +982,18 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	ITOU(C, c_pos);
 	ITOU(G, g_pos);
 
+	if (debug) {
+		printf("A (x, y, z, phi): ");
+		print(a_pos);
+		printf("B (x, y, z, phi): ");
+		print(b_pos);
+		printf("C (x, y, z, phi): ");
+		print(c_pos);
+		printf("G (x, y, z, phi): ");
+		print(g_pos);
+	}
+	
+
 	// get the current joint values of the robotic arm
 	JOINT curr_joint;
 	GetConfiguration(curr_joint);
@@ -894,6 +1001,11 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	curr_joint[0] = DEG2RAD(curr_joint[0]);
 	curr_joint[1] = DEG2RAD(curr_joint[1]);
 	curr_joint[3] = DEG2RAD(curr_joint[3]);
+	
+	if(debug) {
+		printf("Current joint values: ");
+		print(curr_joint);
+	}
 
 	// compute inverse kinematics for each position
 	// current pos to A
@@ -901,24 +1013,52 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	bool ap = false;
 	bool an = false;
 	SOLVE(a_pos, curr_joint, a_near, a_far, ap, an);
+	if(!ap && !an) {
+		printf("Error: A is out of workspace!\n");
+		return;
+	}
 
 	// A to B
 	JOINT b_near, b_far;
 	bool bp = false;
 	bool bn = false;
 	SOLVE(b_pos, a_near, b_near, b_far, bp, bn);
+	if(!bp && !bn) {
+		printf("Error: B is out of workspace!\n");
+		return;
+	}
 
 	// B to C
 	JOINT c_near, c_far;
 	bool cp = false;
 	bool cn = false;
 	SOLVE(c_pos, b_near, c_near, c_far, cp, cn);
+	if(!cp && !cn) {
+		printf("Error: C is out of workspace!\n");
+		return;
+	}
 
 	// C to G
 	JOINT g_near, g_far;
 	bool gp = false;
 	bool gn = false;
 	SOLVE(g_pos, c_near, g_near, g_far, gp, gn);
+	if(!gp && !gn) {
+		printf("Error: G is out of workspace!\n");
+		return;
+	}
+
+	if(debug) {
+		printf("Soln A: ");
+		print(a_near);
+		printf("Soln B: ");
+		print(b_near);
+		printf("Soln C: ");
+		print(c_near);
+		printf("Soln G: ");
+		print(g_near);
+	}
+	
 
 	/*now that we have all of the joint values for positions: A, B, C, G compute 
 	the cubic spline interpolation for each of the joints*/
@@ -929,6 +1069,17 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	get_jv(2, a_near, b_near, c_near, g_near, j2);
 	get_jv(3, a_near, b_near, c_near, g_near, j3);
 	get_jv(4, a_near, b_near, c_near, g_near, j4);
+
+	if(debug) {
+		printf("theta1: ");
+		print(j1);
+		printf("theta2: ");
+		print(j2);
+		printf("d3: ");
+		print(j3);
+		printf("theta4: ");
+		print(j4);
+	}
 
 	/*now that we have the joint values per joint, compute cubic spline for each
 	of the different locations*/
@@ -949,6 +1100,37 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	//JOINT ga4, ab4, bc4;
 	JOINT ab4, bc4, cg4;
 	compute_coeff(j4, t, vel, ab4, bc4, cg4);
+
+	if(debug) {
+		printf("theta1:\n");
+		printf("A -> B: ");
+		print(ab1);
+		printf("B -> C: ");
+		print(bc1);
+		printf("C -> G: ");
+		print(cg1);
+		printf("theta2:\n");
+		printf("A -> B: ");
+		print(ab2);
+		printf("B -> C: ");
+		print(bc1);
+		printf("C -> G: ");
+		print(cg1);
+		printf("d3:\n");
+		printf("A -> B: ");
+		print(ab3);
+		printf("B -> C: ");
+		print(bc1);
+		printf("C -> G: ");
+		print(cg1);
+		printf("theta4:\n");
+		printf("A -> B: ");
+		print(ab4);
+		printf("B -> C: ");
+		print(bc1);
+		printf("C -> G: ");
+		print(cg1);
+	}
 
 	// DEBUG: plot trajectories (position, velocity, acceleration) for each of the joints
 }
