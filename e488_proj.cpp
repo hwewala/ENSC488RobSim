@@ -440,7 +440,7 @@ void TrajPlanJoint(void) {
 	UTOI_FLIP(c_pos, c_mat);
 	UTOI_FLIP(g_pos, g_mat);
 
-	printf("Planning the Trajectory!\n");
+	printf("\nPlanning the Trajectory!\n");
 	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
@@ -983,13 +983,14 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	ITOU(G, g_pos);
 
 	if (debug) {
-		printf("A (x, y, z, phi): ");
+		printf("\n--Input positions (x, y, z, phi)--\n");
+		printf("A: ");
 		print(a_pos);
-		printf("B (x, y, z, phi): ");
+		printf("B: ");
 		print(b_pos);
-		printf("C (x, y, z, phi): ");
+		printf("C: ");
 		print(c_pos);
-		printf("G (x, y, z, phi): ");
+		printf("G: ");
 		print(g_pos);
 	}
 	
@@ -1049,6 +1050,7 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	}
 
 	if(debug) {
+		printf("\n--Joint Values (theta1, theta2, d3, theta4)--\n");
 		printf("Soln A: ");
 		print(a_near);
 		printf("Soln B: ");
@@ -1071,13 +1073,14 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	get_jv(4, a_near, b_near, c_near, g_near, j4);
 
 	if(debug) {
-		printf("theta1: ");
+		printf("\n--Joint Values for each joint--\n");
+		printf("theta1 (rads): ");
 		print(j1);
-		printf("theta2: ");
+		printf("theta2 (rads): ");
 		print(j2);
-		printf("d3: ");
+		printf("d3 (mm): ");
 		print(j3);
-		printf("theta4: ");
+		printf("theta4 (rads): ");
 		print(j4);
 	}
 
@@ -1102,6 +1105,7 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	compute_coeff(j4, t, vel, ab4, bc4, cg4);
 
 	if(debug) {
+		printf("\n--Cubic Coefficients--\n");
 		printf("theta1:\n");
 		printf("A -> B: ");
 		print(ab1);
