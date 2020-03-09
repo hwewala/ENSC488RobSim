@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <math.h>
+#include <fstream>
 
 #include "stdafx.h"
 #include "ensc-488.h"
@@ -78,6 +79,7 @@ void print(TFORM &mat);
 void print(JOINT &arr);
 void print(POS &arr);
 void print(ARR5 &arr);
+void print(vector<double>& vec);
 void get_r(TFORM &tmat, RFORM &rmat);
 void get_pos(TFORM &tmat, POS &pos);
 void pop_mat(TFORM &vals, TFORM &mat);
@@ -92,12 +94,13 @@ void padd(POS &pos1, POS &pos2, POS &res);
 void tconst(RFORM &rmat, POS &pos, TFORM &tmat);
 void transpose_mat(RFORM &rmat, RFORM &imat);
 bool no_sol(bool p_invalid, bool n_invalid);
+void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 
 // Demo 2
 void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
 void PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
 void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint);
 void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg);
-void PATHGEN(double t, double freq, JOINT &coeff, double *pos);
-void VELGEN(double t, int sample_rate, JOINT &coeff, double *vel);
-void ACCGEN(double t, int sample_rate, JOINT &coeff, double *acc);
+void PATHGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
+void VELGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
+void ACCGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
