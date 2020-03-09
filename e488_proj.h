@@ -28,6 +28,7 @@
 #define D3UPPER_100 -100
 #define A210 210
 #define A150 150
+#define FK 666
 
 using namespace std;
 
@@ -50,6 +51,7 @@ void InvKin(JOINT &spt);
 void SimpleMove(void);
 void check_joints(JOINT &joint_vals, bool &valid);
 void ToggleGripper(bool& status);
+void TrajPlan(void);
 
 // functions for class
 // Basic Matrix Transformation Procedures

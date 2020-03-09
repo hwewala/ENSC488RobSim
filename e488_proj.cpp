@@ -22,7 +22,14 @@ void main(void) {
 	UTOI(T, trelw);
 
 	while(true) {
-		printf("Please choose a number: \n 1. Forward Kinematics \n 2. Inverse Kinematics\n 3. Stop+Reset Robot\n 4. Toggle Gripper\n 5. MoveToConfiguration\n 6. Exit\n");
+		printf("\nPlease choose a number:\n"
+				" 1. Forward Kinematics\n"
+				" 2. Inverse Kinematics\n"
+				" 3. Stop+Reset Robot\n"
+				" 4. Toggle Gripper\n"
+				" 5. MoveToConfiguration\n"
+				" 6. Trajectory Planning\n"
+				" 7. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
 
@@ -44,10 +51,13 @@ void main(void) {
 			case 5 : // MoveToConfig
 				SimpleMove();
 				break;
-			case 6 : // Exit
+			case 6 : // Trajectory Planner
+				TrajPlan();
+				break;
+			case 7 : // Exit
 				return; 
 				break;
-			case 7 : // fwdkin rad
+			case 8 : // fwdkin rad
 				FwdKinRad(joint_vals, spt);
 				break;
 			default : 
@@ -61,7 +71,6 @@ void main(void) {
 ////////////////////////////////////////////////////////////////////////////////
 //									UI										  //
 ////////////////////////////////////////////////////////////////////////////////
-
 // Part 0: Menu Operations
 void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
 	printf("\nIn Forward Kin!\n");
@@ -152,7 +161,7 @@ void InvKin(JOINT &spt) {
 	printf("Input position and orientation of tool:\n");
 	printf("x (mm): ");
 	cin >> x;
-	if(x == 666) {
+	if(x == FK) {
 		x = spt[0];
 		y = spt[1];
 		z = spt[2];
@@ -260,6 +269,87 @@ void ToggleGripper(bool &status) {
 	Grasp(status);
 }
 
+void TrajPlan(void) {
+	// Asks the user for a total time, velocity (???), set of points
+	// DEBUG: 	for now, just get the user to input positions (x, y, z, phi) for 
+	//			the different frames: A, B, C, G
+	printf("Trajectory Planning\n");
+
+	// get total time of manipulator motion
+	double t;
+	printf("Time for motion (s): ");
+	cin >> t;
+
+	// get velocity between via points
+	double vel;
+	printf("Velocity between via points: ");
+	cin >> vel;
+
+	// get set of points
+	double xa, ya, za, phia;
+	printf("\nInput (x, y, z, phi) values for A\n");
+	printf("x (mm): ");
+	cin >> xa;
+	printf("y (mm): ");
+	cin >> ya;
+	printf("z (mm): ");
+	cin >> za;
+	printf("phi (deg): ");
+	cin >> phia;
+	if(xa == FK || ya == FK || za == FK || phia == FK) return;
+	JOINT a_pos{xa, ya, za, DEG2RAD(phia)};
+		
+	double xb, yb, zb, phib;
+	printf("\nInput (x, y, z, phi) values for B\n");
+	printf("x (mm): ");
+	cin >> xb;
+	printf("y (mm): ");
+	cin >> yb;
+	printf("z (mm): ");
+	cin >> zb;
+	printf("phi (deg): ");
+	cin >> phib;
+	if(xb == FK || yb == FK || zb == FK || phib == FK) return;
+	JOINT b_pos{xb, yb, zb, DEG2RAD(phib)};
+
+	double xc, yc, zc, phic;
+	printf("\nInput (x, y, z, phi) values for C\n");
+	printf("x (mm): ");
+	cin >> xc;
+	printf("y (mm): ");
+	cin >> yc;
+	printf("z (mm): ");
+	cin >> zc;
+	printf("phi (deg): ");
+	cin >> phic;
+	if(xc == FK || yc == FK || zc == FK || phic == FK) return;
+	JOINT c_pos{xc, yc, zc, DEG2RAD(phic)};
+
+	double xg, yg, zg, phig;
+	printf("\nInput (x, y, z, phi) values for G\n");
+	printf("x (mm): ");
+	cin >> xg;
+	printf("y (mm): ");
+	cin >> yg;
+	printf("z (mm): ");
+	cin >> zg;
+	printf("phi (deg): ");
+	cin >> phig;
+	if(xg == FK || yg == FK || zg == FK || phig == FK) return;
+	JOINT g_pos{xg, yg, zg, DEG2RAD(phig)};
+
+	// Convert the sets of points to TRELS: A, B, C, G
+	TFORM a_mat, b_mat, c_mat, g_mat;
+	UTOI_FLIP(a_pos, a_mat);
+	UTOI_FLIP(b_pos, b_mat);
+	UTOI_FLIP(c_pos, c_mat);
+	UTOI_FLIP(g_pos, g_mat);
+
+	// Call PATHGEN
+	printf("Planning the Trajectory!\n");
+	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //									DEMO 1  								  //
 ////////////////////////////////////////////////////////////////////////////////
@@ -321,15 +411,7 @@ void UTOI(JOINT &pos, TFORM &mat) {
 	return;
 }
 void UTOI_FLIP(JOINT &pos, TFORM &mat) {
-    /*  Description: User form to internal form
-        Assume all rotations are about Z axis
-        Input:
-            pos = (x, y, z, phi)
-        Output:
-            T = | cos(phi)    sin(phi)       0   x |
-                | sin(phi)    -cos(phi)      0   y |
-                | 0             0           -1   z |
-                | 0             0            0   1 |
+    /*  Use this for TRELS Transform matrices!
     */
 
     // get the different position values
