@@ -797,18 +797,19 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	ITOU(C, c_pos);
 	ITOU(G, g_pos);
 
-	// compute inverse kinematics for each position
-	JOINT curr_pos;
-	GetConfiguration(curr_pos); // this gives the current 
-	curr_pos[0] = DEG2RAD(curr_pos[0]);
-	curr_pos[1] = DEG2RAD(curr_pos[1]);
-	curr_pos[3] = DEG2RAD(curr_pos[3]);
+	
+	JOINT curr_joint;
+	GetConfiguration(curr_joint); // this gives the current 
+	curr_joint[0] = DEG2RAD(curr_joint[0]);
+	curr_joint[1] = DEG2RAD(curr_joint[1]);
+	curr_joint[3] = DEG2RAD(curr_joint[3]);
 
+	// compute inverse kinematics for each position
 	// current pos to A
 	JOINT a_near, a_far;
 	bool ap = false;
 	bool an = false;
-	SOLVE(a_pos, curr_pos, a_near, a_far, ap, an);
+	SOLVE(a_pos, curr_joint, a_near, a_far, ap, an);
 
 	// A to B
 	JOINT b_near, b_far;
