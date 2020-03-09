@@ -958,17 +958,9 @@ void compute_coeff(JOINT& j, double t, double vel, JOINT& ab, JOINT& bc, JOINT& 
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes A -> B -> C -> G
-<<<<<<< HEAD
-
-	// DEBUG: figure out way to compute t1, t2, t3
-	double t1 = 0;
-	double t2 = 0;
-	double t3 = 0;
-=======
 	double tab = t/3;
 	double tbc = t/3;
 	double tcg = t/3;
->>>>>>> jacobw
 
 	// A -> B
 	CUBCOEF(j[0], j[1], 0, vel, tab, ab);
@@ -1028,7 +1020,7 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	curr_joint[3] = DEG2RAD(curr_joint[3]);
 	
 	if(debug) {
-		printf("Current joint values: ");
+		printf("\nCurrent joint values: ");
 		print(curr_joint);
 	}
 
@@ -1097,13 +1089,13 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 
 	if(debug) {
 		printf("\n--Joint Values for each joint--\n");
-		printf("theta1 (rads): ");
+		printf("theta1 (rads):\t");
 		print(j1);
-		printf("theta2 (rads): ");
+		printf("theta2 (rads):\t");
 		print(j2);
-		printf("d3 (mm): ");
+		printf("d3 (mm):\t");
 		print(j3);
-		printf("theta4 (rads): ");
+		printf("theta4 (rads):\t");
 		print(j4);
 	}
 
