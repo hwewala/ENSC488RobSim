@@ -637,7 +637,6 @@ void WHERE(JOINT &joint_vals, JOINT &spt) {
 }
 
 // Part 3: Inverse Kinematics
-
 void INVKIN(TFORM &wrelb, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
 	// finds the inverse kinematics for the robot, then compares the solutions with the  to 
 	// find the nearest solution
@@ -959,20 +958,26 @@ void compute_coeff(JOINT& j, double t, double vel, JOINT& ab, JOINT& bc, JOINT& 
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes A -> B -> C -> G
+<<<<<<< HEAD
 
 	// DEBUG: figure out way to compute t1, t2, t3
 	double t1 = 0;
 	double t2 = 0;
 	double t3 = 0;
+=======
+	double tab = t/3;
+	double tbc = t/3;
+	double tcg = t/3;
+>>>>>>> jacobw
 
 	// A -> B
-	CUBCOEF(j[0], j[1], 0, vel, t1, ab);
+	CUBCOEF(j[0], j[1], 0, vel, tab, ab);
 
 	// B -> C
-	CUBCOEF(j[1], j[2], vel, vel, t2, bc);
+	CUBCOEF(j[1], j[2], vel, vel, tbc, bc);
 
 	// C -> G
-	CUBCOEF(j[2], j[3], vel, 0, t3, cg);
+	CUBCOEF(j[2], j[3], vel, 0, tcg, cg);
 }
 
 void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
@@ -1013,7 +1018,6 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 		printf("G: ");
 		print(g_pos);
 	}
-	
 
 	// get the current joint values of the robotic arm
 	JOINT curr_joint;
@@ -1080,7 +1084,6 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 		printf("Soln G: ");
 		print(g_near);
 	}
-	
 
 	/*now that we have all of the joint values for positions: A, B, C, G compute 
 	the cubic spline interpolation for each of the joints*/
@@ -1172,4 +1175,3 @@ void get_jv(int idx, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_jo
 	JOINT vals{a_val, b_val, c_val, g_val};
 	pop_arr(vals, joint);
 }
-
