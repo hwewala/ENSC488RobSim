@@ -167,15 +167,15 @@ void InvKin(JOINT &spt) {
 	printf("Solving inverse kinematics...\n\n");
 
 	JOINT t_pos{x, y, z, DEG2RAD(phi)};
-	JOINT c_pos;
+	JOINT curr_joint;
 	JOINT near, far;
 	bool sol;
-	GetConfiguration(c_pos);
-	c_pos[0] = DEG2RAD(c_pos[0]);
-	c_pos[1] = DEG2RAD(c_pos[1]);
-	c_pos[3] = DEG2RAD(c_pos[3]);
+	GetConfiguration(curr_joint);
+	curr_joint[0] = DEG2RAD(curr_joint[0]);
+	curr_joint[1] = DEG2RAD(curr_joint[1]);
+	curr_joint[3] = DEG2RAD(curr_joint[3]);
 	bool p_val, n_val;
-	SOLVE(t_pos, c_pos, near, far, p_val, n_val);
+	SOLVE(t_pos, curr_joint, near, far, p_val, n_val);
 
 	if(!p_val && !n_val) {
 		// no solution exists!
@@ -205,7 +205,7 @@ void InvKin(JOINT &spt) {
 	}
 	else {
 		printf("Current position:\n");
-		print(c_pos);
+		print(curr_joint);
 
 		printf("Far solution:\n");
 		printf("(%f, %f, %f, %f)\n", RAD2DEG(far[0]), RAD2DEG(far[1]), far[2], RAD2DEG(far[3]));
@@ -552,7 +552,7 @@ void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val,
 	pop_arr(jn, far);
 }
 
-void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
+void SOLVE(JOINT &tar_pos, JOINT &curr_joint, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
 	// given a target position, determines the joint values 
 
 	TFORM wrels, wrelb, trels, trelb; // calculated with TMULT
@@ -581,7 +581,7 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val
 		int M = size(sums);
 		for (int i = 0; i < M; i++) {
 			for (int j = 0; j < N; j++) {
-				sums[i] += w[j] * (abs(itr[j] - curr_pos[j]));
+				sums[i] += w[j] * (abs(itr[j] - curr_joint[j]));
 			}
 			pop_arr(far, itr);
 		}
@@ -799,7 +799,7 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 
 	// compute inverse kinematics for each position
 	JOINT curr_pos;
-	GetConfiguration(curr_pos);
+	GetConfiguration(curr_pos); // this gives the current 
 	curr_pos[0] = DEG2RAD(curr_pos[0]);
 	curr_pos[1] = DEG2RAD(curr_pos[1]);
 	curr_pos[3] = DEG2RAD(curr_pos[3]);
