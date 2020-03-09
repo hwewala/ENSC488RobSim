@@ -955,6 +955,24 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
+void compute_coeff(JOINT& j, double t, double vel, JOINT& ab, JOINT& bc, JOINT& cg) {
+	// takes the joint values, and computes the cubic coefficients between subsequent 
+	// joint values
+	// Assumes A -> B -> C -> G
+	double t1 = 0;
+	double t2 = 0;
+	double t3 = 0;
+
+	// A -> B
+	CUBCOEF(j[0], j[1], 0, vel, t1, ab);
+
+	// B -> C
+	CUBCOEF(j[1], j[2], vel, vel, t2, bc);
+
+	// C -> G
+	CUBCOEF(j[2], j[3], vel, 0, t3, cg);
+}
+
 void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
 	/* 	Computes the path trajectory of a given set of points (max. 5)
 		Inputs: 
@@ -1153,20 +1171,3 @@ void get_jv(int idx, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_jo
 	pop_arr(vals, joint);
 }
 
-void compute_coeff(JOINT &j, double t, double vel, JOINT &ab, JOINT &bc, JOINT &cg) {
-	// takes the joint values, and computes the cubic coefficients between subsequent 
-	// joint values
-	// Assumes A -> B -> C -> G
-	double t1 = 0;
-	double t2 = 0;
-	double t3 = 0;
-
-	// A -> B
-	CUBCOEF(j[0], j[1], 0, vel, t1, ab);
-
-	// B -> C
-	CUBCOEF(j[1], j[2], vel, vel, t2, bc);
-
-	// C -> G
-	CUBCOEF(j[2], j[3], vel, 0, t3, cg);
-}
