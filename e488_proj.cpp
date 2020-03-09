@@ -353,9 +353,9 @@ void TrajPlanPos(void) {
 	UTOI_FLIP(c_pos, c_mat);
 	UTOI_FLIP(g_pos, g_mat);
 
-	// Call PATHGEN
+	// Plan the path
 	printf("Planning the Trajectory!\n");
-	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 void TrajPlanJoint(void) {
@@ -445,7 +445,7 @@ void TrajPlanJoint(void) {
 	UTOI_FLIP(g_pos, g_mat);
 
 	printf("\nPlanning the Trajectory!\n");
-	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 void TrajCust(void) {
@@ -513,7 +513,7 @@ void TrajCust(void) {
 	UTOI_FLIP(g_pos, g_mat);
 
 	printf("\nPlanning the Trajectory!\n");
-	PATHGEN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1083,7 +1083,7 @@ void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c
 	pop_arr(vals, joint);
 }
 
-void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
+void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
 	/* 	Computes the path trajectory of a given set of points (max. 5)
 		Inputs: 
 			- t: total time for motion (user-specified)
@@ -1227,7 +1227,7 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	compute_coeff(j4, t, vel, curra4, ab4, bc4, cg4);
 
 	if(debug) {
-		printf("\n--Cubic Coefficients--\n");
+		printf("\n--Cubic Coefficients (a0, a1, a2, a3)--\n");
 		printf("theta1:\n");
 		printf("0 -> A: ");
 		print(curra1);
@@ -1267,4 +1267,48 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	}
 
 	// DEBUG: plot trajectories (position, velocity, acceleration) for each of the joints
+}
+
+void PATHGEN(double t, int sample_rate, JOINT &coeff, double *theta) {
+	/* Computes the position of the path, theta(t)
+		Input: 
+			- t: total time to compute the whole path
+			- freq: how frequent we want to compute values
+			- coeff: the cubic spline coefficients 
+		Output:
+			- pos (x, y): the output positions
+	*/
+	*theta = NULL;
+	int num_points = t*sample_rate;
+	theta = new double[num_points];
+	double curr_time = 0;
+	for(int i = 0; i < num_points; i++) {
+		theta[i] = coeff[0] + coeff[1]*curr_time + coeff[2]*pow(curr_time, 2) + coeff[3]*pow(curr_time, 3);
+		curr_time += i*(1/sample_rate);
+	}
+}
+
+void VELGEN(double t, int sample_rate, JOINT &coeff, double *vel) {
+	// Computes the velocity of the path vs. time
+	*vel = NULL;
+	int num_points = t*sample_rate;
+	vel = new double [num_points];
+	double curr_time = 0;
+	for(int i = 0; i < num_points; i++) {
+		vel[i] = coeff[1] + 2*coeff[2]*curr_time + 3*coeff[3]*pow(curr_time, 2);
+		curr_time += i*(1/sample_rate);
+	}
+
+}
+
+void ACCGEN(double t, int sample_rate, JOINT &coeff, double *acc) {
+	// Computes the acceleration of the path vs. time
+	*acc = NULL;
+	int num_points = t*sample_rate;
+	acc = new double [num_points];
+	double curr_time = 0;
+	for(int i = 0; i < num_points; i++) {
+		acc[i] = 2*coeff[2] + 3*coeff[3]*curr_time;
+		curr_time += i*(1/sample_rate);
+	}
 }
