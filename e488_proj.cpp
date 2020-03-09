@@ -792,9 +792,9 @@ void print(TFORM &mat) {
 void print(JOINT &arr) {
 	// Description: prints the (size = 4)
     printf("[");
-    for(int i = 0; i < N; i++) {
+    for(int i = 0; i < 4; i++) {
         printf("%f", arr[i]);
-        if(i < N-1) {
+        if(i < 3) {
             printf("\t");
         }
     }
@@ -803,11 +803,24 @@ void print(JOINT &arr) {
 }
 
 void print(POS &arr) {
-	// Description: prints the (size = 4)
+	// Description: prints the (size = 3)
     printf("[");
-    for(int i = 0; i < (N-1); i++) {
+    for(int i = 0; i < 3; i++) {
         printf("%f", arr[i]);
-        if(i < N-2) {
+        if(i < 2) {
+            printf("\t");
+        }
+    }
+    printf("]\n");
+	return;
+}
+
+void print(ARR5 &arr) {
+	// Description: prints the (size = 5)
+    printf("[");
+    for(int i = 0; i < 5; i++) {
+        printf("%f", arr[i]);
+        if(i < 4) {
             printf("\t");
         }
     }
@@ -857,14 +870,21 @@ void pop_mat(RFORM &vals, RFORM &mat) {
 
 void pop_arr(JOINT &vals, JOINT &arr) {
 	// populates arr with vals
-	for(int i = 0; i < N; i++) {
+	for(int i = 0; i < 4; i++) {
+		arr[i] = vals[i];
+	}
+}
+
+void pop_arr(ARR5 &vals, ARR5 &arr) {
+	// populates arr with vals
+	for(int i = 0; i < 5; i++) {
 		arr[i] = vals[i];
 	}
 }
 
 void pop_arr(POS &vals, POS &arr) {
 	// populates arr with vals
-	for(int i = 0; i < N; i++) {
+	for(int i = 0; i < 3; i++) {
 		arr[i] = vals[i];
 	}
 }
@@ -954,22 +974,42 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
-void compute_coeff(JOINT& j, double t, double vel, JOINT& ab, JOINT& bc, JOINT& cg) {
+void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
-	// Assumes A -> B -> C -> G
-	double tab = t/3;
-	double tbc = t/3;
-	double tcg = t/3;
+	// Assumes Curr -> A -> B -> C -> G
+	double tcurra = t/4;
+	double tab = t/4;
+	double tbc = t/4;
+	double tcg = t/4;
+
+	// curr -> A
+	CUBCOEF(j[0], j[1], 0, vel, tcurra, curra);
 
 	// A -> B
-	CUBCOEF(j[0], j[1], 0, vel, tab, ab);
+	CUBCOEF(j[1], j[2], vel, vel, tab, ab);
 
 	// B -> C
-	CUBCOEF(j[1], j[2], vel, vel, tbc, bc);
+	CUBCOEF(j[2], j[3], vel, vel, tbc, bc);
 
 	// C -> G
-	CUBCOEF(j[2], j[3], vel, 0, tcg, cg);
+	CUBCOEF(j[3], j[4], vel, 0, tcg, cg);
+}
+
+void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint) {
+	// gets the joint values for IDX points A, B, C, G. ie. if IDX = 1, gets the 
+	// joint1 values and saves it in joint
+	int idx_arr = idx - 1;
+	double curr_val, a_val, b_val, c_val, g_val;
+	curr_val = curr_joint[idx_arr];
+	a_val = a_joint[idx_arr];
+	b_val = b_joint[idx_arr];
+	c_val = c_joint[idx_arr];
+	g_val = g_joint[idx_arr];
+
+	ARR5 vals{curr_val, a_val, b_val, c_val, g_val};
+	print(vals);
+	pop_arr(vals, joint);
 }
 
 void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
@@ -1019,11 +1059,6 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	curr_joint[1] = DEG2RAD(curr_joint[1]);
 	curr_joint[3] = DEG2RAD(curr_joint[3]);
 	
-	if(debug) {
-		printf("\nCurrent joint values: ");
-		print(curr_joint);
-	}
-
 	// compute inverse kinematics for each position
 	// current pos to A
 	JOINT a_near, a_far;
@@ -1067,6 +1102,8 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 
 	if(debug) {
 		printf("\n--Joint Values (theta1, theta2, d3, theta4)--\n");
+		printf("curr:   ");
+		print(curr_joint);
 		printf("Soln A: ");
 		print(a_near);
 		printf("Soln B: ");
@@ -1081,11 +1118,11 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	the cubic spline interpolation for each of the joints*/
 
 	// but first, separate the all the joint values for one joint to a given array
-	JOINT j1, j2, j3, j4;
-	get_jv(1, a_near, b_near, c_near, g_near, j1);
-	get_jv(2, a_near, b_near, c_near, g_near, j2);
-	get_jv(3, a_near, b_near, c_near, g_near, j3);
-	get_jv(4, a_near, b_near, c_near, g_near, j4);
+	ARR5 j1, j2, j3, j4;
+	get_jv(1, curr_joint, a_near, b_near, c_near, g_near, j1);
+	get_jv(2, curr_joint, a_near, b_near, c_near, g_near, j2);
+	get_jv(3, curr_joint, a_near, b_near, c_near, g_near, j3);
+	get_jv(4, curr_joint, a_near, b_near, c_near, g_near, j4);
 
 	if(debug) {
 		printf("\n--Joint Values for each joint--\n");
@@ -1103,21 +1140,20 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	of the different locations*/
 
 	// cubic coefficients for theta1
-	JOINT ab1, bc1, cg1;
-	compute_coeff(j1, t, vel, ab1, bc1, cg1);
+	JOINT curra1, ab1, bc1, cg1;
+	compute_coeff(j1, t, vel, curra1, ab1, bc1, cg1);
 
 	// cubic coefficients for theta2
-	JOINT ab2, bc2, cg2;
-	compute_coeff(j2, t, vel, ab2, bc2, cg2);
+	JOINT curra2, ab2, bc2, cg2;
+	compute_coeff(j2, t, vel, curra2, ab2, bc2, cg2);
 
 	// cubic coefficients for d3
-	JOINT ab3, bc3, cg3;
-	compute_coeff(j3, t, vel, ab3, bc3, cg3);
+	JOINT curra3, ab3, bc3, cg3;
+	compute_coeff(j3, t, vel, curra3, ab3, bc3, cg3);
 
 	// cubic coefficients for theta4
-	//JOINT ga4, ab4, bc4;
-	JOINT ab4, bc4, cg4;
-	compute_coeff(j4, t, vel, ab4, bc4, cg4);
+	JOINT curra4, ab4, bc4, cg4;
+	compute_coeff(j4, t, vel, curra4, ab4, bc4, cg4);
 
 	if(debug) {
 		printf("\n--Cubic Coefficients--\n");
@@ -1152,18 +1188,4 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool 
 	}
 
 	// DEBUG: plot trajectories (position, velocity, acceleration) for each of the joints
-}
-
-void get_jv(int idx, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, JOINT &joint) {
-	// gets the joint values for IDX points A, B, C, G. ie. if IDX = 1, gets the 
-	// joint1 values and saves it in joint
-	int idx_arr = idx - 1;
-	double a_val, b_val, c_val, g_val;
-	a_val = a_joint[idx_arr];
-	b_val = b_joint[idx_arr];
-	c_val = c_joint[idx_arr];
-	g_val = g_joint[idx_arr];
-
-	JOINT vals{a_val, b_val, c_val, g_val};
-	pop_arr(vals, joint);
 }
