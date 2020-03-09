@@ -760,7 +760,7 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	// Assumes constant velocity between points
 	// See eqn 7.11 of text (pg 207 of text OR 215/408 of pdfr)
 	double a0, a1, a2, a3;
-	a0 = theta0;
+	a0 = theta0;	
 	a1 = vel0;
 	a2 = (3/pow(tf, 2))*(thetaf - theta0) - (2/tf)*vel0 - (1/tf)*velf;
 	a3 = -(2/pow(tf, 3))*(thetaf - theta0) + (1/pow(tf, 2))*(velf + vel0);
@@ -815,19 +815,19 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 	JOINT b_near, b_far;
 	bool bp = false;
 	bool bn = false;
-	SOLVE(b_pos, a_pos, b_near, b_far, bp, bn);
+	SOLVE(b_pos, a_near, b_near, b_far, bp, bn);
 
 	// B to C
 	JOINT c_near, c_far;
 	bool cp = false;
 	bool cn = false;
-	SOLVE(c_pos, b_pos, c_near, c_far, cp, cn);
+	SOLVE(c_pos, b_near, c_near, c_far, cp, cn);
 
 	// C to G
 	JOINT g_near, g_far;
 	bool gp = false;
 	bool gn = false;
-	SOLVE(g_pos, c_pos, g_near, g_far, gp, gn);
+	SOLVE(g_pos, c_near, g_near, g_far, gp, gn);
 
 	/*now that we have all of the joint values for positions: A, B, C, G compute 
 	the cubic spline interpolation for each of the joints*/
@@ -879,8 +879,6 @@ void get_jv(int idx, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_jo
 void compute_coeff(JOINT &j, double t, double vel, JOINT &ab, JOINT &bc, JOINT &cg) {
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
-	// Assumes G -> A -> B -> C
-
 	// Assumes A -> B -> C -> G
 	double t1 = 0;
 	double t2 = 0;
