@@ -453,8 +453,8 @@ void WHERE(JOINT &joint_vals, JOINT &spt) {
 
 // Part 3: Inverse Kinematics
 
-void INVKIN(TFORM &wrelb, JOINT &curr_pos, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
-	// finds the inverse kinematics for the robot, then compares the solutions with the curr_pos to 
+void INVKIN(TFORM &wrelb, JOINT &near, JOINT &far, bool &p_val, bool &n_val) {
+	// finds the inverse kinematics for the robot, then compares the solutions with the  to 
 	// find the nearest solution
 	// exclude solutions with bad joint values
 
@@ -566,7 +566,7 @@ void SOLVE(JOINT &tar_pos, JOINT &curr_joint, JOINT &near, JOINT &far, bool &p_v
     TMULT(trelb, wrelt, wrelb); // do trelw = srelb * wrels
 
     // find nearest solution with INVKIN
-    INVKIN(wrelb, tar_pos, near, far, p_val, n_val);
+    INVKIN(wrelb, near, far, p_val, n_val);
 
 	// sum of differences between current and final joint position for a given solution is stored in each index
 	// size 2 is hardcoded since we only get two solutions
@@ -882,7 +882,9 @@ void compute_coeff(JOINT &j, double t, double vel, JOINT &ab, JOINT &bc, JOINT &
 	// Assumes G -> A -> B -> C
 
 	// Assumes A -> B -> C -> G
-	double t1, t2, t3;
+	double t1 = 0;
+	double t2 = 0;
+	double t3 = 0;
 
 	// A -> B
 	CUBCOEF(j[0], j[1], 0, vel, t1, ab);
