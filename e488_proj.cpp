@@ -58,6 +58,10 @@ void main(void) {
 	
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//									UI										  //
+////////////////////////////////////////////////////////////////////////////////
+
 // Part 0: Menu Operations
 void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
 	printf("\nIn Forward Kin!\n");
@@ -255,6 +259,11 @@ void ToggleGripper(bool &status) {
 	}
 	Grasp(status);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//									DEMO 1  								  //
+////////////////////////////////////////////////////////////////////////////////
+
 
 void check_joints(JOINT &joint_vals, bool &valid) {	
 	// checks the joint values in [rads] and [mm]
@@ -790,16 +799,16 @@ void PATHGEN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G) {
 					to be continuous
 	*/
 	// convert all tool frames to position + orientation of frames (x, y, z, phi)
-	JOINT a_pos, b_pos, c_pos, g_pos;
-	
+	JOINT a_pos, b_pos, c_pos, g_pos;	
 	ITOU(A, a_pos);
 	ITOU(B, b_pos);
 	ITOU(C, c_pos);
 	ITOU(G, g_pos);
 
-	
+	// get the current joint values of the robotic arm
 	JOINT curr_joint;
-	GetConfiguration(curr_joint); // this gives the current 
+	GetConfiguration(curr_joint);
+	// convert angles to radians 
 	curr_joint[0] = DEG2RAD(curr_joint[0]);
 	curr_joint[1] = DEG2RAD(curr_joint[1]);
 	curr_joint[3] = DEG2RAD(curr_joint[3]);
