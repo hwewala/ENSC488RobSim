@@ -25,10 +25,10 @@ void main(void) {
 		printf("\nPlease choose a number:\n"
 				" 1. Forward Kinematics\n"
 				" 2. Inverse Kinematics\n"
-				" 3. Stop+Reset Robot\n"
-				" 4. Toggle Gripper\n"
-				" 5. MoveToConfiguration\n"
-				" 6. Trajectory Planning\n"
+				" 3. Trajectory Planning\n"
+				" 4. Stop+Reset Robot\n"
+				" 5. Toggle Gripper\n"
+				" 6. MoveToConfiguration\n"
 				" 7. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
@@ -40,19 +40,19 @@ void main(void) {
 			case 2 : // Inverse Kinematics 
 				InvKin(spt);
 				break;
-			case 3 : // Stop Robot
+			case 3 : // Trajectory Planner
+				TrajPlan();
+				break;
+			case 4 : // Stop Robot
 				printf("Stopping and Resetting Robot\n");
 				StopRobot();
 				ResetRobot();
 				break;
-			case 4 : // Toggle Gripper
+			case 5 : // Toggle Gripper
 				ToggleGripper(gripper_status);
 				break;
-			case 5 : // MoveToConfig
+			case 6 : // MoveToConfig
 				SimpleMove();
-				break;
-			case 6 : // Trajectory Planner
-				TrajPlan();
 				break;
 			case 7 : // Exit
 				return; 
