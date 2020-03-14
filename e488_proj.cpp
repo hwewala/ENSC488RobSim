@@ -632,7 +632,7 @@ void TMULT(TFORM &brela, TFORM &crelb, TFORM &crela) {
                 | 0             0       0   1 |
     */
    	RFORM arb, brc, arc;
-	POS apb, bpc, apc;
+	ARR3 apb, bpc, apc;
 	// get the rotation matrices from brela and crelb
 	get_r(brela, arb);
 	get_r(crelb, brc);
@@ -645,7 +645,7 @@ void TMULT(TFORM &brela, TFORM &crelb, TFORM &crela) {
 	get_pos(crelb, bpc);
 
 	// multiply rotation matrix with position vector, get apc
-	POS temp;
+	ARR3 temp;
 	rmult(arb, bpc, temp);
 	// add position vectors to get apc
 	padd(temp, apb, apc);
@@ -662,14 +662,14 @@ void TINVERT(TFORM &tmat, TFORM &inv) {
 	get_r(tmat, rmat); //arb
 
 	// gets the position vector
-	POS pos1;
+	ARR3 pos1;
 	get_pos(tmat, pos1); //apb
 
 	// transforms the rotation matrix (ie. the inverse of rotation matrix)
 	RFORM trans_mat;
 	transpose_mat(rmat, trans_mat); //bra
 
-	POS pos2, pos3;
+	ARR3 pos2, pos3;
 	pmult(pos1, -1, pos2); // -apb
 	rmult(trans_mat, pos2, pos3); // bra * -apb = bpa
 
@@ -874,7 +874,7 @@ void print(JOINT &arr) {
 	return;
 }
 
-void print(POS &arr) {
+void print(ARR3 &arr) {
 	// Description: prints the (size = 3)
     printf("[");
     for(int i = 0; i < 3; i++) {
@@ -920,7 +920,7 @@ void get_r(TFORM &tmat, RFORM &rmat) {
 	}
 }
 
-void get_pos(TFORM &tmat, POS &pos) {
+void get_pos(TFORM &tmat, ARR3 &pos) {
 	// gets the Position vector from the Transformation matrix
 	for(int i = 0; i < (N-1); i++) {
 		pos[i] = tmat[i][(N-1)];
@@ -965,7 +965,7 @@ void pop_arr(ARR5 &vals, ARR5 &arr) {
 	}
 }
 
-void pop_arr(POS &vals, POS &arr) {
+void pop_arr(ARR3 &vals, ARR3 &arr) {
 	// populates arr with vals
 	for(int i = 0; i < 3; i++) {
 		arr[i] = vals[i];
@@ -986,11 +986,11 @@ void rmult(RFORM &mat1, RFORM &mat2, RFORM &res) {
 	}
 }
 
-void rmult(RFORM &mat, POS &pos, POS &res) {
+void rmult(RFORM &mat, ARR3 &pos, ARR3 &res) {
 	// multiples mat and pos together
-	POS temp;
+	ARR3 temp;
 	for(int i = 0; i < N-1; i++) {
-		POS arr1;
+		ARR3 arr1;
 		double sum = 0;
 		for(int j = 0; j < N-1; j++) {
 			sum += mat[i][j]*pos[j];
@@ -999,21 +999,21 @@ void rmult(RFORM &mat, POS &pos, POS &res) {
 	}
 }
 
-void pmult(POS &pos, double val, POS &res) {
+void pmult(ARR3 &pos, double val, ARR3 &res) {
 	// multiply pos by a val
 	for(int i = 0; i < N-1; i++) {
 		res[i] = val*pos[i];
 	}
 }
 
-void padd(POS &pos1, POS &pos2, POS &res) {
+void padd(ARR3 &pos1, ARR3 &pos2, ARR3 &res) {
 	// adds pos1 and pos2 togheter
 	for(int i = 0; i < (N-1); i++) {
 		res[i] = pos1[i] + pos2[i];
 	}
 }
 
-void tconst(RFORM &rmat, POS &pos, TFORM &tmat) {
+void tconst(RFORM &rmat, ARR3 &pos, TFORM &tmat) {
 	// constructs the Transformation matrix with rotation matrix and position vector
 	TFORM temp = {{rmat[0][0], rmat[0][1], rmat[0][2], pos[0]},
 				{rmat[1][0], rmat[1][1], rmat[1][2], pos[1]},
@@ -1086,7 +1086,7 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
-void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
+void compute_coeff(ARR5 &j, double t, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg, ARR5 &times) {
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes Curr -> A -> B -> C -> G
@@ -1094,14 +1094,18 @@ void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT
 	// new code
 	// compute the slopes of each line segment
 	ARR5 temp{0, t/4, 2*t/4, 3*t/4, t};
-	ARR5 t_seg;
 	ARR4 slopes;
-	pop_arr(temp, t_seg);
-	compute_slopes(t_seg, j, slopes);
-
+	pop_arr(temp, times);
+	ARR4 t_seg{times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3]};
+	compute_slopes(times, j, slopes);
 	printf("Slopes: ");
 	print(slopes);
 
+	// the velocities at the via points, vel at start and end equal 0
+	ARR3 vels;
+	compute_vels(slopes, vels);
+	printf("Velocities at vias: ");
+	print(vels);
 
 	// old code
 	// double tcurra = t/4;
@@ -1109,30 +1113,40 @@ void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT
 	// double tbc = t/4;
 	// double tcg = t/4;
 
-	// // curr -> A
-	// CUBCOEF(j[0], j[1], 0, vel, tcurra, curra);
+	// curr -> A
+	CUBCOEF(j[0], j[1], 0, vels[0], t_seg[0], curra);
 
-	// // A -> B
-	// CUBCOEF(j[1], j[2], vel, vel, tab, ab);
+	// A -> B
+	CUBCOEF(j[1], j[2], vels[0], vels[1], t_seg[1], ab);
 
-	// // B -> C
-	// CUBCOEF(j[2], j[3], vel, vel, tbc, bc);
+	// B -> C
+	CUBCOEF(j[2], j[3], vels[1], vels[2], t_seg[2], bc);
 
-	// // C -> G
-	// CUBCOEF(j[3], j[4], vel, 0, tcg, cg);
+	// C -> G
+	CUBCOEF(j[3], j[4], vels[2], 0, t_seg[4], cg);
 }
 
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes) {
 	// computes the slope of the line segment
 	int sz = sizeof(slopes)/sizeof(*slopes);
 	for(int i = 0; i < sz; i++) {
-		compute_slope(t[i], t[i+1], j[i], j[i+1], slopes[i]);
+		slopes[i] = (j[i+1] - j[i]) / (t[i+1] - t[i]);
 	}
 }
 
-void compute_slope(double x1, double x2, double y1, double y2, double &slope) {
-	// computes the slope of an individual line segment
-	slope = (y2 - y1) / (x2 - x1);
+void compute_vels(ARR4 &slopes, ARR3 &vels) {
+	/* computes the velocity at each via point
+		- if slope's sign change, vel = 0
+		- if slope's sign does not change, vel = average of two slopes */
+	int sz = sizeof(vels)/sizeof(*vels);
+	for(int i = 0; i < sz; i++) {
+		if(slopes[i] > 0 && slopes[i+1] < 0 || slopes[i] < 0 && slopes[i+1] > 0) {
+			vels[i] = 0;
+		}
+		else {
+			vels[i] = (slopes[i] + slopes[i+1])/2;
+		}
+	}
 }
 
 void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint) {
@@ -1279,19 +1293,20 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 
 	// cubic coefficients for theta1
 	JOINT curra1, ab1, bc1, cg1;
-	compute_coeff(j1, t, vel, curra1, ab1, bc1, cg1);
+	ARR5 times1, times2, times3, times4;
+	compute_coeff(j1, t, curra1, ab1, bc1, cg1, times1);
 
 	// cubic coefficients for theta2
 	JOINT curra2, ab2, bc2, cg2;
-	compute_coeff(j2, t, vel, curra2, ab2, bc2, cg2);
+	compute_coeff(j2, t, curra2, ab2, bc2, cg2, times2);
 
 	// cubic coefficients for d3
 	JOINT curra3, ab3, bc3, cg3;
-	compute_coeff(j3, t, vel, curra3, ab3, bc3, cg3);
+	compute_coeff(j3, t, curra3, ab3, bc3, cg3, times3);
 
 	// cubic coefficients for theta4
 	JOINT curra4, ab4, bc4, cg4;
-	compute_coeff(j4, t, vel, curra4, ab4, bc4, cg4);
+	compute_coeff(j4, t, curra4, ab4, bc4, cg4, times4);
 
 	if(debug) {
 		printf("\n--Cubic Coefficients (a0, a1, a2, a3)--\n");
@@ -1344,81 +1359,81 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	vector<double> theta1_pos, theta2_pos, d3_pos, theta4_pos, curr_time;
 	int sample_rate = 10;
 	// Theta 1
-	PATHGEN(t/4, 0, sample_rate, curra1, theta1_pos, curr_time);
-	PATHGEN(t/4, t/4, sample_rate, ab1, theta1_pos, curr_time);
-	PATHGEN(t/4, t/2, sample_rate, bc1, theta1_pos, curr_time);
-	PATHGEN(t/4, 0.75*t, sample_rate, cg1, theta1_pos, curr_time);
+	PATHGEN(times1[0], times1[1], sample_rate, curra1, theta1_pos, curr_time);
+	PATHGEN(times1[1], times1[2], sample_rate, ab1, theta1_pos, curr_time);
+	PATHGEN(times1[2], times1[3], sample_rate, bc1, theta1_pos, curr_time);
+	PATHGEN(times1[3], times1[4], sample_rate, cg1, theta1_pos, curr_time);
 	bool curr_time_filled = true; //vector of times is filled after first runthrough
 	vector<pair<string, vector<double>>> t1_vals = {{"Time", curr_time}, {"theta1_pos", theta1_pos}};
 	write_csv("t1_pos.csv", t1_vals);
 
-	// // Theta 2
-	// PATHGEN(t / 4, 0, sample_rate, curra2, theta2_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, t / 4, sample_rate, ab2, theta2_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, t / 2, sample_rate, bc2, theta2_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, 0.75 * t, sample_rate, cg2, theta2_pos, curr_time, curr_time_filled);
-	// // d3
-	// PATHGEN(t / 4, 0, sample_rate, curra3, d3_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, t / 4, sample_rate, ab3, d3_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, t / 2, sample_rate, bc3, d3_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, 0.75 * t, sample_rate, cg3, d3_pos, curr_time, curr_time_filled);
-	// // Theta 4
-	// PATHGEN(t / 4, 0, sample_rate, curra4, theta4_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, t / 4, sample_rate, ab4, theta4_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, t / 2, sample_rate, bc4, theta4_pos, curr_time, curr_time_filled);
-	// PATHGEN(t / 4, 0.75 * t, sample_rate, cg4, theta4_pos, curr_time, curr_time_filled);
-	// vector<pair<string, vector<double>>> pos_vals = { {"Time", curr_time}, {"theta1_pos", theta1_pos}, {"theta2_pos", theta2_pos}, {"d3_pos", d3_pos}, {"theta4_pos", theta4_pos} };
-	// write_csv("Position.csv", pos_vals);
+	// Theta 2
+	PATHGEN(times2[0], times2[1], sample_rate, curra2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times2[1], times2[2], sample_rate, ab2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times2[2], times2[3], sample_rate, bc2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times2[3], times2[4], sample_rate, cg2, theta2_pos, curr_time, curr_time_filled);
+	// d3
+	PATHGEN(t / 4, 0, sample_rate, curra3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(t / 4, t / 4, sample_rate, ab3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(t / 4, t / 2, sample_rate, bc3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(t / 4, 0.75 * t, sample_rate, cg3, d3_pos, curr_time, curr_time_filled);
+	// Theta 4
+	PATHGEN(t / 4, 0, sample_rate, curra4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(t / 4, t / 4, sample_rate, ab4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(t / 4, t / 2, sample_rate, bc4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(t / 4, 0.75 * t, sample_rate, cg4, theta4_pos, curr_time, curr_time_filled);
+	vector<pair<string, vector<double>>> pos_vals = { {"Time", curr_time}, {"theta1_pos", theta1_pos}, {"theta2_pos", theta2_pos}, {"d3_pos", d3_pos}, {"theta4_pos", theta4_pos} };
+	write_csv("Position.csv", pos_vals);
 
-	// // VELOCTIY VALUES
-	// vector<double> theta1_vel, theta2_vel, d3_vel, theta4_vel;
-	// // Theta 1
-	// VELGEN(t / 4, 0, sample_rate, curra1, theta1_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab1, theta1_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc1, theta1_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg1, theta1_vel, curr_time, curr_time_filled);
-	// // Theta 2
-	// VELGEN(t / 4, 0, sample_rate, curra2, theta2_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab2, theta2_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc2, theta2_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg2, theta2_vel, curr_time, curr_time_filled);
-	// // d3
-	// VELGEN(t / 4, 0, sample_rate, curra3, d3_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab3, d3_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc3, d3_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg3, d3_vel, curr_time, curr_time_filled);
-	// // Theta 4
-	// VELGEN(t / 4, 0, sample_rate, curra4, theta4_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab4, theta4_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc4, theta4_vel, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg4, theta4_vel, curr_time, curr_time_filled);
-	// vector<pair<string, vector<double>>> vel_vals = { {"Time", curr_time}, {"theta1_vel", theta1_vel}, {"theta2_vel", theta2_vel}, {"d3_vel", d3_vel}, {"theta4_vel", theta4_vel} };
-	// write_csv("Velocity.csv", vel_vals);
+	// VELOCTIY VALUES
+	vector<double> theta1_vel, theta2_vel, d3_vel, theta4_vel;
+	// Theta 1
+	VELGEN(t / 4, 0, sample_rate, curra1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg1, theta1_vel, curr_time, curr_time_filled);
+	// Theta 2
+	VELGEN(t / 4, 0, sample_rate, curra2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg2, theta2_vel, curr_time, curr_time_filled);
+	// d3
+	VELGEN(t / 4, 0, sample_rate, curra3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg3, d3_vel, curr_time, curr_time_filled);
+	// Theta 4
+	VELGEN(t / 4, 0, sample_rate, curra4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg4, theta4_vel, curr_time, curr_time_filled);
+	vector<pair<string, vector<double>>> vel_vals = { {"Time", curr_time}, {"theta1_vel", theta1_vel}, {"theta2_vel", theta2_vel}, {"d3_vel", d3_vel}, {"theta4_vel", theta4_vel} };
+	write_csv("Velocity.csv", vel_vals);
 
-	// // ACCELERATION VALUES
-	// vector<double> theta1_acc, theta2_acc, d3_acc, theta4_acc;
-	// // Theta 1
-	// VELGEN(t / 4, 0, sample_rate, curra1, theta1_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab1, theta1_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc1, theta1_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg1, theta1_acc, curr_time, curr_time_filled);
-	// // Theta 2
-	// VELGEN(t / 4, 0, sample_rate, curra2, theta2_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab2, theta2_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc2, theta2_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg2, theta2_acc, curr_time, curr_time_filled);
-	// // Theta 3
-	// VELGEN(t / 4, 0, sample_rate, curra3, d3_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab3, d3_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc3, d3_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg3, d3_acc, curr_time, curr_time_filled);
-	// // Theta 4
-	// VELGEN(t / 4, 0, sample_rate, curra4, theta4_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 4, sample_rate, ab4, theta4_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, t / 2, sample_rate, bc4, theta4_acc, curr_time, curr_time_filled);
-	// VELGEN(t / 4, 0.75 * t, sample_rate, cg4, theta4_acc, curr_time, curr_time_filled);
-	// vector<pair<string, vector<double>>> acc_vals = { {"Time", curr_time}, {"theta1_acc", theta1_acc}, {"theta2_acc", theta2_acc}, {"d3_acc", d3_acc}, {"theta4_acc", theta4_acc} };
-	// write_csv("Acceleration.csv", acc_vals);
+	// ACCELERATION VALUES
+	vector<double> theta1_acc, theta2_acc, d3_acc, theta4_acc;
+	// Theta 1
+	VELGEN(t / 4, 0, sample_rate, curra1, theta1_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab1, theta1_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc1, theta1_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg1, theta1_acc, curr_time, curr_time_filled);
+	// Theta 2
+	VELGEN(t / 4, 0, sample_rate, curra2, theta2_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab2, theta2_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc2, theta2_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg2, theta2_acc, curr_time, curr_time_filled);
+	// Theta 3
+	VELGEN(t / 4, 0, sample_rate, curra3, d3_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab3, d3_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc3, d3_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg3, d3_acc, curr_time, curr_time_filled);
+	// Theta 4
+	VELGEN(t / 4, 0, sample_rate, curra4, theta4_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 4, sample_rate, ab4, theta4_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, t / 2, sample_rate, bc4, theta4_acc, curr_time, curr_time_filled);
+	VELGEN(t / 4, 0.75 * t, sample_rate, cg4, theta4_acc, curr_time, curr_time_filled);
+	vector<pair<string, vector<double>>> acc_vals = { {"Time", curr_time}, {"theta1_acc", theta1_acc}, {"theta2_acc", theta2_acc}, {"d3_acc", d3_acc}, {"theta4_acc", theta4_acc} };
+	write_csv("Acceleration.csv", acc_vals);
 }
 
 void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {
@@ -1442,8 +1457,9 @@ void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>
 	}
 }
 
-void VELGEN(double t, double ti, int sample_rate, JOINT &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
+void VELGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
 	// Computes the velocity of the path vs. time
+	double t = tf - ti;
 	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
@@ -1452,8 +1468,9 @@ void VELGEN(double t, double ti, int sample_rate, JOINT &coeff, vector<double>& 
 
 }
 
-void ACCGEN(double t, double ti, int sample_rate, JOINT &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
+void ACCGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
 	// Computes the acceleration of the path vs. time
+	double t = tf - ti;
 	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
