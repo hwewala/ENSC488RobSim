@@ -108,5 +108,6 @@ void compute_coeff(ARR5 &j, double t, JOINT& curra, JOINT& ab, JOINT& bc, JOINT&
 void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint);
 void to_vec(ARR5 &arr, vector<double> &vec);
 void to_arr(vector<double> &vec, ARR4 &arr);
+void compute_times(double t, ARR5 &times);
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes);
 void compute_vels(ARR4 &slopes, ARR3 &vels);

@@ -1086,16 +1086,18 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
-void compute_coeff(ARR5 &j, double t, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg, ARR5 &times) {
+void compute_times(double t, ARR5 &times) {
+	// computes the times at each point
+	ARR5 temp{0, 4, 8, 12, 16};
+	pop_arr(temp, times);
+}
+
+void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes Curr -> A -> B -> C -> G
-
-	// new code
 	// compute the slopes of each line segment
-	ARR5 temp{0, t/4, 2*t/4, 3*t/4, t};
 	ARR4 slopes;
-	pop_arr(temp, times);
 	ARR4 t_seg{times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3]};
 	compute_slopes(times, j, slopes);
 	printf("Slopes: ");
@@ -1106,12 +1108,6 @@ void compute_coeff(ARR5 &j, double t, JOINT& curra, JOINT& ab, JOINT& bc, JOINT&
 	compute_vels(slopes, vels);
 	printf("Velocities at vias: ");
 	print(vels);
-
-	// old code
-	// double tcurra = t/4;
-	// double tab = t/4;
-	// double tbc = t/4;
-	// double tcg = t/4;
 
 	// curr -> A
 	CUBCOEF(j[0], j[1], 0, vels[0], t_seg[0], curra);
@@ -1290,23 +1286,25 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 
 	/*now that we have the joint values per joint, compute cubic spline for each
 	of the different locations*/
+	// compute times
+	ARR5 times;
+	compute_times(t, times);
 
 	// cubic coefficients for theta1
 	JOINT curra1, ab1, bc1, cg1;
-	ARR5 times1, times2, times3, times4;
-	compute_coeff(j1, t, curra1, ab1, bc1, cg1, times1);
+	compute_coeff(j1, times, curra1, ab1, bc1, cg1);
 
 	// cubic coefficients for theta2
 	JOINT curra2, ab2, bc2, cg2;
-	compute_coeff(j2, t, curra2, ab2, bc2, cg2, times2);
+	compute_coeff(j2, times, curra2, ab2, bc2, cg2);
 
 	// cubic coefficients for d3
 	JOINT curra3, ab3, bc3, cg3;
-	compute_coeff(j3, t, curra3, ab3, bc3, cg3, times3);
+	compute_coeff(j3, times, curra3, ab3, bc3, cg3);
 
 	// cubic coefficients for theta4
 	JOINT curra4, ab4, bc4, cg4;
-	compute_coeff(j4, t, curra4, ab4, bc4, cg4, times4);
+	compute_coeff(j4, times, curra4, ab4, bc4, cg4);
 
 	if(debug) {
 		printf("\n--Cubic Coefficients (a0, a1, a2, a3)--\n");
@@ -1359,79 +1357,79 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	vector<double> theta1_pos, theta2_pos, d3_pos, theta4_pos, curr_time;
 	int sample_rate = 10;
 	// Theta 1
-	PATHGEN(times1[0], times1[1], sample_rate, curra1, theta1_pos, curr_time);
-	PATHGEN(times1[1], times1[2], sample_rate, ab1, theta1_pos, curr_time);
-	PATHGEN(times1[2], times1[3], sample_rate, bc1, theta1_pos, curr_time);
-	PATHGEN(times1[3], times1[4], sample_rate, cg1, theta1_pos, curr_time);
+	PATHGEN(times[0], times[1], sample_rate, curra1, theta1_pos, curr_time);
+	PATHGEN(times[1], times[2], sample_rate, ab1, theta1_pos, curr_time);
+	PATHGEN(times[2], times[3], sample_rate, bc1, theta1_pos, curr_time);
+	PATHGEN(times[3], times[4], sample_rate, cg1, theta1_pos, curr_time);
 	bool curr_time_filled = true; //vector of times is filled after first runthrough
-	vector<pair<string, vector<double>>> t1_vals = {{"Time", curr_time}, {"theta1_pos", theta1_pos}};
-	write_csv("t1_pos.csv", t1_vals);
+	// vector<pair<string, vector<double>>> t1_vals = {{"Time", curr_time}, {"theta1_pos", theta1_pos}};
+	// write_csv("t1_pos.csv", t1_vals);
 
 	// Theta 2
-	PATHGEN(times2[0], times2[1], sample_rate, curra2, theta2_pos, curr_time, curr_time_filled);
-	PATHGEN(times2[1], times2[2], sample_rate, ab2, theta2_pos, curr_time, curr_time_filled);
-	PATHGEN(times2[2], times2[3], sample_rate, bc2, theta2_pos, curr_time, curr_time_filled);
-	PATHGEN(times2[3], times2[4], sample_rate, cg2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times[0], times[1], sample_rate, curra2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times[1], times[2], sample_rate, ab2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times[2], times[3], sample_rate, bc2, theta2_pos, curr_time, curr_time_filled);
+	PATHGEN(times[3], times[4], sample_rate, cg2, theta2_pos, curr_time, curr_time_filled);
 	// d3
-	PATHGEN(times3[0], times3[1], sample_rate, curra3, d3_pos, curr_time, curr_time_filled);
-	PATHGEN(times3[1], times3[2], sample_rate, ab3, d3_pos, curr_time, curr_time_filled);
-	PATHGEN(times3[2], times3[3], sample_rate, bc3, d3_pos, curr_time, curr_time_filled);
-	PATHGEN(times3[3], times3[4], sample_rate, cg3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(times[0], times[1], sample_rate, curra3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(times[1], times[2], sample_rate, ab3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(times[2], times[3], sample_rate, bc3, d3_pos, curr_time, curr_time_filled);
+	PATHGEN(times[3], times[4], sample_rate, cg3, d3_pos, curr_time, curr_time_filled);
 	// Theta 4
-	PATHGEN(times4[0], times4[1], sample_rate, curra4, theta4_pos, curr_time, curr_time_filled);
-	PATHGEN(times4[1], times4[2], sample_rate, ab4, theta4_pos, curr_time, curr_time_filled);
-	PATHGEN(times4[2], times4[3], sample_rate, bc4, theta4_pos, curr_time, curr_time_filled);
-	PATHGEN(times4[3], times4[4], sample_rate, cg4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(times[0], times[1], sample_rate, curra4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(times[1], times[2], sample_rate, ab4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(times[2], times[3], sample_rate, bc4, theta4_pos, curr_time, curr_time_filled);
+	PATHGEN(times[3], times[4], sample_rate, cg4, theta4_pos, curr_time, curr_time_filled);
 	vector<pair<string, vector<double>>> pos_vals = { {"Time", curr_time}, {"theta1_pos", theta1_pos}, {"theta2_pos", theta2_pos}, {"d3_pos", d3_pos}, {"theta4_pos", theta4_pos} };
 	write_csv("Position.csv", pos_vals);
 
 	// VELOCTIY VALUES
 	vector<double> theta1_vel, theta2_vel, d3_vel, theta4_vel;
 	// Theta 1
-	VELGEN(times1[0], times1[1], sample_rate, curra1, theta1_vel, curr_time, curr_time_filled);
-	VELGEN(times1[1], times1[2], sample_rate, ab1, theta1_vel, curr_time, curr_time_filled);
-	VELGEN(times1[2], times1[3], sample_rate, bc1, theta1_vel, curr_time, curr_time_filled);
-	VELGEN(times1[3], times1[4], sample_rate, cg1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(times[0], times[1], sample_rate, curra1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(times[1], times[2], sample_rate, ab1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(times[2], times[3], sample_rate, bc1, theta1_vel, curr_time, curr_time_filled);
+	VELGEN(times[3], times[4], sample_rate, cg1, theta1_vel, curr_time, curr_time_filled);
 	// Theta 2
-	VELGEN(times2[0], times2[1], sample_rate, curra2, theta2_vel, curr_time, curr_time_filled);
-	VELGEN(times2[1], times2[2], sample_rate, ab2, theta2_vel, curr_time, curr_time_filled);
-	VELGEN(times2[2], times2[3], sample_rate, bc2, theta2_vel, curr_time, curr_time_filled);
-	VELGEN(times2[3], times2[4], sample_rate, cg2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(times[0], times[1], sample_rate, curra2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(times[1], times[2], sample_rate, ab2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(times[2], times[3], sample_rate, bc2, theta2_vel, curr_time, curr_time_filled);
+	VELGEN(times[3], times[4], sample_rate, cg2, theta2_vel, curr_time, curr_time_filled);
 	// d3
-	VELGEN(times3[0], times3[1], sample_rate, curra3, d3_vel, curr_time, curr_time_filled);
-	VELGEN(times3[1], times3[2], sample_rate, ab3, d3_vel, curr_time, curr_time_filled);
-	VELGEN(times3[2], times3[3], sample_rate, bc3, d3_vel, curr_time, curr_time_filled);
-	VELGEN(times3[3], times3[4], sample_rate, cg3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(times[0], times[1], sample_rate, curra3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(times[1], times[2], sample_rate, ab3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(times[2], times[3], sample_rate, bc3, d3_vel, curr_time, curr_time_filled);
+	VELGEN(times[3], times[4], sample_rate, cg3, d3_vel, curr_time, curr_time_filled);
 	// Theta 4
-	VELGEN(times4[0], times4[1], sample_rate, curra4, theta4_vel, curr_time, curr_time_filled);
-	VELGEN(times4[1], times4[2], sample_rate, ab4, theta4_vel, curr_time, curr_time_filled);
-	VELGEN(times4[2], times4[3], sample_rate, bc4, theta4_vel, curr_time, curr_time_filled);
-	VELGEN(times4[3], times4[4], sample_rate, cg4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(times[0], times[1], sample_rate, curra4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(times[1], times[2], sample_rate, ab4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(times[2], times[3], sample_rate, bc4, theta4_vel, curr_time, curr_time_filled);
+	VELGEN(times[3], times[4], sample_rate, cg4, theta4_vel, curr_time, curr_time_filled);
 	vector<pair<string, vector<double>>> vel_vals = { {"Time", curr_time}, {"theta1_vel", theta1_vel}, {"theta2_vel", theta2_vel}, {"d3_vel", d3_vel}, {"theta4_vel", theta4_vel} };
 	write_csv("Velocity.csv", vel_vals);
 
 	// ACCELERATION VALUES
 	vector<double> theta1_acc, theta2_acc, d3_acc, theta4_acc;
 	// Theta 1
-	ACCGEN(times1[0], times1[1], sample_rate, curra1, theta1_acc, curr_time, curr_time_filled);
-	ACCGEN(times1[1], times1[2], sample_rate, ab1, theta1_acc, curr_time, curr_time_filled);
-	ACCGEN(times1[2], times1[3], sample_rate, bc1, theta1_acc, curr_time, curr_time_filled);
-	ACCGEN(times1[3], times1[4], sample_rate, cg1, theta1_acc, curr_time, curr_time_filled);
+	ACCGEN(times[0], times[1], sample_rate, curra1, theta1_acc, curr_time, curr_time_filled);
+	ACCGEN(times[1], times[2], sample_rate, ab1, theta1_acc, curr_time, curr_time_filled);
+	ACCGEN(times[2], times[3], sample_rate, bc1, theta1_acc, curr_time, curr_time_filled);
+	ACCGEN(times[3], times[4], sample_rate, cg1, theta1_acc, curr_time, curr_time_filled);
 	// Theta 2
-	ACCGEN(times2[0], times2[1], sample_rate, curra2, theta2_acc, curr_time, curr_time_filled);
-	ACCGEN(times2[1], times2[2], sample_rate, ab2, theta2_acc, curr_time, curr_time_filled);
-	ACCGEN(times2[2], times2[3], sample_rate, bc2, theta2_acc, curr_time, curr_time_filled);
-	ACCGEN(times2[3], times2[4], sample_rate, cg2, theta2_acc, curr_time, curr_time_filled);
+	ACCGEN(times[0], times[1], sample_rate, curra2, theta2_acc, curr_time, curr_time_filled);
+	ACCGEN(times[1], times[2], sample_rate, ab2, theta2_acc, curr_time, curr_time_filled);
+	ACCGEN(times[2], times[3], sample_rate, bc2, theta2_acc, curr_time, curr_time_filled);
+	ACCGEN(times[3], times[4], sample_rate, cg2, theta2_acc, curr_time, curr_time_filled);
 	// Theta 3
-	ACCGEN(times3[0], times3[1], sample_rate, curra3, d3_acc, curr_time, curr_time_filled);
-	ACCGEN(times3[1], times3[2], sample_rate, ab3, d3_acc, curr_time, curr_time_filled);
-	ACCGEN(times3[2], times3[3], sample_rate, bc3, d3_acc, curr_time, curr_time_filled);
-	ACCGEN(times3[3], times3[4], sample_rate, cg3, d3_acc, curr_time, curr_time_filled);
+	ACCGEN(times[0], times[1], sample_rate, curra3, d3_acc, curr_time, curr_time_filled);
+	ACCGEN(times[1], times[2], sample_rate, ab3, d3_acc, curr_time, curr_time_filled);
+	ACCGEN(times[2], times[3], sample_rate, bc3, d3_acc, curr_time, curr_time_filled);
+	ACCGEN(times[3], times[4], sample_rate, cg3, d3_acc, curr_time, curr_time_filled);
 	// Theta 4
-	ACCGEN(times4[0], times4[1], sample_rate, curra4, theta4_acc, curr_time, curr_time_filled);
-	ACCGEN(times4[1], times4[2], sample_rate, ab4, theta4_acc, curr_time, curr_time_filled);
-	ACCGEN(times4[2], times4[3], sample_rate, bc4, theta4_acc, curr_time, curr_time_filled);
-	ACCGEN(times4[3], times4[4], sample_rate, cg4, theta4_acc, curr_time, curr_time_filled);
+	ACCGEN(times[0], times[1], sample_rate, curra4, theta4_acc, curr_time, curr_time_filled);
+	ACCGEN(times[1], times[2], sample_rate, ab4, theta4_acc, curr_time, curr_time_filled);
+	ACCGEN(times[2], times[3], sample_rate, bc4, theta4_acc, curr_time, curr_time_filled);
+	ACCGEN(times[3], times[4], sample_rate, cg4, theta4_acc, curr_time, curr_time_filled);
 	vector<pair<string, vector<double>>> acc_vals = { {"Time", curr_time}, {"theta1_acc", theta1_acc}, {"theta2_acc", theta2_acc}, {"d3_acc", d3_acc}, {"theta4_acc", theta4_acc} };
 	write_csv("Acceleration.csv", acc_vals);
 }
