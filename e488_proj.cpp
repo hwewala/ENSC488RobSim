@@ -1305,7 +1305,16 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 		print(cg1);
 	}
 
-	// DEBUG: plot trajectories (position, velocity, acceleration) for each of the joints
+	// Plot the desired points on the plot
+	// vector<double> t1_pos, curr_t;
+	vector<double> t_interval{0, 4, 8, 12, 16};
+	vector<double> t1_joints;
+	to_vec(j1, t1_joints);
+	printf("t1_joints: ");
+	print(t1_joints);
+	vector<pair<string, vector<double>>> theta1_spline {{"Time", t_interval}, {"Target", t1_joints}};
+	write_csv("Target.csv", theta1_spline);
+	
 	// POSITION VALUES
 	vector<double> theta1_pos, theta2_pos, d3_pos, theta4_pos, curr_time;
 	int sample_rate = 10;
@@ -1420,5 +1429,12 @@ void ACCGEN(double t, double ti, int sample_rate, JOINT &coeff, vector<double>& 
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
 		acc.push_back(2*coeff[2] + 3*coeff[3]*curr_time[i]);
+	}
+}
+
+void to_vec(ARR5 &arr, vector<double> &vec) {
+	int sz = sizeof(arr)/sizeof(*arr);
+	for(int i = 0; i < sz; i++) {
+		vec.push_back(arr[i]);
 	}
 }

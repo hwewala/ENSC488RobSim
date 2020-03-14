@@ -104,3 +104,4 @@ void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT
 void PATHGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
 void VELGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
 void ACCGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
+void to_vec(ARR5 &arr, vector<double> &vec);
