@@ -453,7 +453,7 @@ void TrajCust(void) {
 	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
 
 	// get total time of manipulator motion
-	double t = 15;
+	double t = 16;
 	printf("Time for motion (s): %f\n", t);
 
 	// get velocity between via points
@@ -1086,10 +1086,32 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
-void compute_times(double t, ARR5 &times) {
-	// computes the times at each point
-	ARR5 temp{0, 4, 8, 12, 16};
-	pop_arr(temp, times);
+void compute_times(double t, ARR5 &j1, ARR5 &j2, ARR5 &j3, ARR5 &j4, ARR5 &times) {
+	// computes the times at each point based on the displacement for all the joints
+	// DEBUG: This does not include displacement from joint 3
+	// from 0 -> A -> B -> C -> G
+	ARR4 lens;
+	double sum = 0;
+	int sz = sizeof(lens) / sizeof(*lens);
+	for (int i = 0; i < sz; i++) {
+		lens[i] = abs(j1[i+1] - j1[i]) + abs(j2[i+1] - j2[i]) + abs(j4[i+1] - j4[i]);
+		sum += lens[i];
+	}
+	
+	sz = sizeof(times) / sizeof(*times);
+	for(int i = 0; i < sz; i++) {
+		if(i == 0) {
+			times[i] = 0;
+		}
+		else if(i == sz-1) {
+			times[i] = t;
+		}
+		else {
+			times[i] = times[i-1]+lens[i-1]*t/sum;
+		}
+	}
+	// ARR5 temp{lens[0]/sum*t, lens[1]/sum*t, lens[2]/sum*t, lens[3]/sum*t, t};
+	// pop_arr(temp, times);
 }
 
 void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
@@ -1100,14 +1122,10 @@ void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOI
 	ARR4 slopes;
 	ARR4 t_seg{times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3]};
 	compute_slopes(times, j, slopes);
-	printf("Slopes: ");
-	print(slopes);
 
 	// the velocities at the via points, vel at start and end equal 0
 	ARR3 vels;
 	compute_vels(slopes, vels);
-	printf("Velocities at vias: ");
-	print(vels);
 
 	// curr -> A
 	CUBCOEF(j[0], j[1], 0, vels[0], t_seg[0], curra);
@@ -1288,7 +1306,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	of the different locations*/
 	// compute times
 	ARR5 times;
-	compute_times(t, times);
+	compute_times(t, j1, j2, j3, j4, times);
 
 	// cubic coefficients for theta1
 	JOINT curra1, ab1, bc1, cg1;
@@ -1347,8 +1365,9 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	}
 
 	// Plot the desired points on the plot
-	vector<double> t_interval{0, 4, 8, 12, 16};
+	vector<double> t_interval;
 	vector<double> t1_joints;
+	to_vec(times, t_interval);
 	to_vec(j1, t1_joints);
 	vector<pair<string, vector<double>>> theta1_points {{"Time", t_interval}, {"Target", t1_joints}};
 	write_csv("Target.csv", theta1_points);
@@ -1361,7 +1380,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	PATHGEN(times[1], times[2], sample_rate, ab1, theta1_pos, curr_time);
 	PATHGEN(times[2], times[3], sample_rate, bc1, theta1_pos, curr_time);
 	PATHGEN(times[3], times[4], sample_rate, cg1, theta1_pos, curr_time);
-	bool curr_time_filled = true; //vector of times is filled after first runthrough
+	bool curr_time_filled = true; // vector of times is filled after first runthrough
 	// vector<pair<string, vector<double>>> t1_vals = {{"Time", curr_time}, {"theta1_pos", theta1_pos}};
 	// write_csv("t1_pos.csv", t1_vals);
 
