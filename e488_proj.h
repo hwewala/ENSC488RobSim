@@ -38,6 +38,7 @@ typedef double RFORM[3][3];
 typedef double CFORM[3][4];
 typedef double POS[3];
 typedef double ARR5[5];
+typedef double ARR4[4];
 
 JOINT T{0, 0, L135, 0};
 JOINT B{0, 0, L405, 0};
@@ -99,9 +100,13 @@ void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 // Demo 2
 void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
 void PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
-void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint);
-void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg);
 void PATHGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
 void VELGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
 void ACCGEN(double t, double ti, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
+
+void compute_coeff(ARR5 &j, double t, double vel, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg);
+void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint);
 void to_vec(ARR5 &arr, vector<double> &vec);
+void to_arr(vector<double> &vec, ARR4 &arr);
+void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes);
+void compute_slope(double x1, double x2, double y1, double y2, double &slope);
