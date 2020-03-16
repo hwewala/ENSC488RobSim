@@ -34,6 +34,7 @@ void main(void) {
 				" 6. Toggle Gripper\n"
 				" 7. MoveToConfiguration\n"
 				" 8. Trajectory Planning (custom)\n"
+				" 9. Execute Path"
 				"\n 0. Exit\n");
 		printf("Your input >> ");
 		cin >> user_input;
@@ -65,6 +66,8 @@ void main(void) {
 			case 8 : // Custom
 				TrajCust();
 				break;
+			case 9 : // Move with Path
+				ExecutePath();
 			case 0 : // Exit
 				return; 
 				break;
@@ -516,6 +519,9 @@ void TrajCust(void) {
 	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
+void ExecutePath(void) {
+	return;
+}
 ////////////////////////////////////////////////////////////////////////////////
 //								Check Limits							  	  //
 ////////////////////////////////////////////////////////////////////////////////

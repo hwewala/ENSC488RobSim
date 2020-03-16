@@ -70,6 +70,7 @@ void ToggleGripper(bool &status);
 void TrajPlanPos(void);
 void TrajPlanJoint(void);
 void TrajCust(void);
+void ExecutePath(void);
 
 // functions for class
 // Basic Matrix Transformation Procedures
