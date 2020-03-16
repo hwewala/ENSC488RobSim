@@ -77,7 +77,7 @@ void main(void) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//									UInterface								  //
+//									User Interface							  //
 ////////////////////////////////////////////////////////////////////////////////
 // Part 0: Menu Operations
 void FwdKinDeg(JOINT &joint_vals, JOINT &spt) {
@@ -462,7 +462,7 @@ void TrajCust(void) {
 
 	double j1a, j2a, j3a, j4a;
 	j1a = 100;
-	j2a = 95;
+	j2a = 1;
 	j3a = -101;
 	j4a = 0;
 	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
@@ -471,8 +471,8 @@ void TrajCust(void) {
 	if(!a_valid) return;
 
 	double j1b, j2b, j3b, j4b;
-	j1b = -100;
-	j2b = -50;
+	j1b = 50;
+	j2b = 1;
 	j3b = -125;
 	j4b = 0;
 	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
@@ -481,20 +481,20 @@ void TrajCust(void) {
 	if(!b_valid) return;
 
 	double j1c, j2c, j3c, j4c;
-	j1c = -100;
-	j2c = 50;
+	j1c = 100;
+	j2c = 1;
 	j3c = -150;
-	j4c = 100;
+	j4c = 0;
 	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
 	bool c_valid = false;
 	check_joints(jc, c_valid);
 	if(!c_valid) return;
 
 	double j1g, j2g, j3g, j4g;
-	j1g = 50;
-	j2g = -50;
+	j1g = 100;
+	j2g = 1;
 	j3g = -175;
-	j4g = 125;
+	j4g = 0;
 	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
 	bool g_valid = false;
 	check_joints(jg, g_valid);
@@ -1032,14 +1032,6 @@ void transpose_mat(RFORM &rmat, RFORM &imat) {
 	}
 }
 
-//returns true if no solution is available
-bool no_sol(bool p_invalid, bool n_invalid) {
-	if (n_invalid && p_invalid) {
-		return true;
-	}
-	return false;
-}
-
 // Make a CSV file with one or more columns of values
 // Each column of data is represented by the pair <column name, column data>
 //   as pair<string, vector<double>>
@@ -1380,10 +1372,14 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	PATHGEN(times[1], times[2], sample_rate, ab1, theta1_pos, curr_time);
 	PATHGEN(times[2], times[3], sample_rate, bc1, theta1_pos, curr_time);
 	PATHGEN(times[3], times[4], sample_rate, cg1, theta1_pos, curr_time);
+<<<<<<< HEAD
 	bool curr_time_filled = true; // vector of times is filled after first runthrough
 	// vector<pair<string, vector<double>>> t1_vals = {{"Time", curr_time}, {"theta1_pos", theta1_pos}};
 	// write_csv("t1_pos.csv", t1_vals);
 
+=======
+	bool curr_time_filled = true; //vector of times is filled after first run through
+>>>>>>> jacobw
 	// Theta 2
 	PATHGEN(times[0], times[1], sample_rate, curra2, theta2_pos, curr_time, curr_time_filled);
 	PATHGEN(times[1], times[2], sample_rate, ab2, theta2_pos, curr_time, curr_time_filled);
@@ -1451,6 +1447,12 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	ACCGEN(times[3], times[4], sample_rate, cg4, theta4_acc, curr_time, curr_time_filled);
 	vector<pair<string, vector<double>>> acc_vals = { {"Time", curr_time}, {"theta1_acc", theta1_acc}, {"theta2_acc", theta2_acc}, {"d3_acc", d3_acc}, {"theta4_acc", theta4_acc} };
 	write_csv("Acceleration.csv", acc_vals);
+
+	// X vs Y Values
+	vector<double> x, y, z, phi;
+	POSGEN(theta1_pos, theta2_pos, d3_pos, theta4_pos, x, y, z, phi);
+	vector<pair<string, vector<double>>> xy_vals = { {"X", x}, {"Y", y}, {"Z", z}, {"Phi", phi}};
+	write_csv("XY.csv", xy_vals);
 }
 
 void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {
@@ -1492,6 +1494,26 @@ void ACCGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>&
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
 		acc.push_back(2*coeff[2] + 3*coeff[3]*curr_time[i]);
+	}
+}
+
+void POSGEN(vector<double> theta1, vector<double> theta2, vector<double> &d3, vector<double> theta4, 
+	vector<double> &x, vector<double> &y, vector<double> &z, vector<double> &phi) {
+	
+	// Computes the X vs Y and returns it
+	int sz = size(theta1);
+	for(int i = 0; i < sz; i++) {
+		JOINT curr_joint{theta1[i], theta2[i], d3[i], theta4[i]};
+		JOINT curr_pos;
+
+		// Use WHERE to get the (x, y, z, phi) of TrelS
+		WHERE(curr_joint, curr_pos);
+
+		// Save position to the outputs
+		x.push_back(curr_pos[0]);
+		y.push_back(curr_pos[1]);
+		z.push_back(curr_pos[2]);
+		phi.push_back(curr_pos[3]);
 	}
 }
 
