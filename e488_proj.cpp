@@ -464,37 +464,37 @@ void TrajCust(void) {
 	j1a = 100;
 	j2a = 1;
 	j3a = -101;
-	j4a = 0;
+	j4a = 10;
 	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
 	bool a_valid = false;
 	check_joints(ja, a_valid);
 	if(!a_valid) return;
 
 	double j1b, j2b, j3b, j4b;
-	j1b = 50;
+	j1b = 90;
 	j2b = 1;
-	j3b = -125;
-	j4b = 0;
+	j3b = -102;
+	j4b = 20;
 	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
 	bool b_valid = false;
 	check_joints(jb, b_valid);
 	if(!b_valid) return;
 
 	double j1c, j2c, j3c, j4c;
-	j1c = 100;
+	j1c = 80;
 	j2c = 1;
-	j3c = -150;
-	j4c = 0;
+	j3c = -103;
+	j4c = 30;
 	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
 	bool c_valid = false;
 	check_joints(jc, c_valid);
 	if(!c_valid) return;
 
 	double j1g, j2g, j3g, j4g;
-	j1g = 100;
+	j1g = 70;
 	j2g = 1;
-	j3g = -175;
-	j4g = 0;
+	j3g = -104;
+	j4g = 40;
 	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
 	bool g_valid = false;
 	check_joints(jg, g_valid);
@@ -517,9 +517,8 @@ void TrajCust(void) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//									DEMO 1  								  //
+//								Check Limits							  	  //
 ////////////////////////////////////////////////////////////////////////////////
-
 
 void check_joints(JOINT &joint_vals, bool &valid) {	
 	// checks the joint values in [rads] and [mm]
@@ -543,6 +542,59 @@ void check_joints(JOINT &joint_vals, bool &valid) {
 	// check to see if the inputs are valid
 	valid = theta1_valid && theta2_valid && d3_valid && theta4_valid;
 }
+
+void check_vel(vector<vector<double>> vals, bool &valid) {
+	// Checks to see if velocity limits are exceeded
+	// separate different velocities for each joint
+	vector<double> j1, j2, j3, j4;
+	j1 = vals[0];
+	j2 = vals[1];
+	j3 = vals[2];
+	j4 = vals[3];
+
+	int sz = size(j1);
+	for(int i = 0; i < sz; i++) {
+		bool j1_val = abs(j1[i]) <= J1V_LIM;
+		bool j2_val = abs(j2[i]) <= J2V_LIM;
+		bool j3_val = abs(j3[i]) <= J3V_LIM;
+		bool j4_val = abs(j4[i]) <= J4V_LIM;
+
+		valid = j1_val && j2_val && j3_val && j4_val;
+		if (!valid){
+			return;
+		}
+	}
+	valid = true;
+}
+
+void check_acc(vector<vector<double>> vals, bool &valid) {
+	// Checks to see if acceleration limits are exceeded
+	// separate different accelerations for each joint
+	vector<double> j1, j2, j3, j4;
+	j1 = vals[0];
+	j2 = vals[1];
+	j3 = vals[2];
+	j4 = vals[3];
+
+	int sz = size(j1);
+	for(int i = 0; i < sz; i++) {
+		bool j1_val = abs(j1[i]) <= J1A_LIM;
+		bool j2_val = abs(j2[i]) <= J2A_LIM;
+		bool j3_val = abs(j3[i]) <= J3A_LIM;
+		bool j4_val = abs(j4[i]) <= J4A_LIM;
+
+		valid = j1_val && j2_val && j3_val && j4_val;
+		if (!valid){
+			return;
+		}
+	}
+	valid = true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//									DEMO 1  								  //
+////////////////////////////////////////////////////////////////////////////////
 
 // Part 1: Basic Matrix Transformation Procedures
 void UTOI(JOINT &pos, TFORM &mat) {
@@ -925,12 +977,6 @@ void get_pos(TFORM &tmat, ARR3 &pos) {
 	for(int i = 0; i < (N-1); i++) {
 		pos[i] = tmat[i][(N-1)];
 	}
-}
-
-int arr_size(JOINT &arr) {
-	// Gets the size of the array
-	int size = sizeof(arr)/sizeof(arr[0]);
-	return size;
 }
 
 void pop_mat(TFORM &vals, TFORM &mat) {
@@ -1447,6 +1493,21 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	POSGEN(theta1_pos, theta2_pos, d3_pos, theta4_pos, x, y, z, phi);
 	vector<pair<string, vector<double>>> xy_vals = { {"X", x}, {"Y", y}, {"Z", z}, {"Phi", phi}};
 	write_csv("XY.csv", xy_vals);
+
+	// Check Velocity and Acceleration limits
+	vector<vector<double>> vel_check{theta1_vel, theta2_vel, d3_vel, theta4_vel};
+	bool vel_valid = false;
+	check_vel(vel_check, vel_valid);
+	if (!vel_valid) {
+		printf("\n!-----WARNING-----!\nExceeded Velocity limits!\n");
+	}
+
+	vector<vector<double>> acc_check{theta1_acc, theta2_acc, d3_acc, theta4_acc};
+	bool acc_valid = false;
+	check_acc(acc_check, acc_valid);
+	if (!acc_valid) {
+		printf("\n!-----WARNING-----!\nExceeded Acceleration limits!\n");
+	}
 }
 
 void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {

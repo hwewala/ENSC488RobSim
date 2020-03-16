@@ -22,6 +22,9 @@
 #define L410 410
 #define PI 3.14159265
 #define N 4
+#define FK 666
+
+// Position constraints
 #define THETA1_CONS 150
 #define THETA2_CONS 100
 #define THETA4_CONS 160
@@ -29,7 +32,18 @@
 #define D3UPPER_100 -100
 #define A210 210
 #define A150 150
-#define FK 666
+
+// Velocity constraints
+#define J1V_LIM 150 
+#define J2V_LIM 150
+#define J3V_LIM 50
+#define J4V_LIM 150
+
+// Acceleration constraints
+#define J1A_LIM 600
+#define J2A_LIM 600
+#define J3A_LIM 200
+#define J4A_LIM 600
 
 using namespace std;
 
@@ -52,7 +66,6 @@ void FwdKinDeg(JOINT &joint_vals, JOINT &spt);
 void FwdKinRad(JOINT &joint_vals, JOINT &spt);
 void InvKin(JOINT &spt);
 void SimpleMove(void);
-void check_joints(JOINT &joint_vals, bool &valid);
 void ToggleGripper(bool &status);
 void TrajPlanPos(void);
 void TrajPlanJoint(void);
@@ -75,7 +88,6 @@ void INVKIN(TFORM &wrelb, JOINT &near, JOINT &far, bool &p_val, bool &n_val);
 void SOLVE(JOINT &tar_pos, JOINT &curr_joint, JOINT &near, JOINT &far, bool &p_val, bool &n_val);
 
 // Helper functions
-int arr_size(JOINT &arr);
 void print(TFORM &mat);
 void print(JOINT &arr);
 void print(ARR3 &arr);
@@ -94,6 +106,11 @@ void pmult(ARR3 &pos, double val, ARR3 &res);
 void padd(ARR3 &pos1, ARR3 &pos2, ARR3 &res);
 void tconst(RFORM &rmat, ARR3 &pos, TFORM &tmat);
 void transpose_mat(RFORM &rmat, RFORM &imat);
+
+void check_joints(JOINT &joint_vals, bool &valid);
+void check_vel(vector<vector<double>> vals, bool &valid);
+void check_acc(vector<vector<double>> vals, bool &valid);
+
 void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 
 // Demo 2
