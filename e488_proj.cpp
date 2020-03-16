@@ -1372,14 +1372,8 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	PATHGEN(times[1], times[2], sample_rate, ab1, theta1_pos, curr_time);
 	PATHGEN(times[2], times[3], sample_rate, bc1, theta1_pos, curr_time);
 	PATHGEN(times[3], times[4], sample_rate, cg1, theta1_pos, curr_time);
-<<<<<<< HEAD
 	bool curr_time_filled = true; // vector of times is filled after first runthrough
-	// vector<pair<string, vector<double>>> t1_vals = {{"Time", curr_time}, {"theta1_pos", theta1_pos}};
-	// write_csv("t1_pos.csv", t1_vals);
 
-=======
-	bool curr_time_filled = true; //vector of times is filled after first run through
->>>>>>> jacobw
 	// Theta 2
 	PATHGEN(times[0], times[1], sample_rate, curra2, theta2_pos, curr_time, curr_time_filled);
 	PATHGEN(times[1], times[2], sample_rate, ab2, theta2_pos, curr_time, curr_time_filled);
