@@ -53,7 +53,7 @@ void FwdKinRad(JOINT &joint_vals, JOINT &spt);
 void InvKin(JOINT &spt);
 void SimpleMove(void);
 void check_joints(JOINT &joint_vals, bool &valid);
-void ToggleGripper(bool& status);
+void ToggleGripper(bool &status);
 void TrajPlanPos(void);
 void TrajPlanJoint(void);
 void TrajCust(void);
@@ -94,7 +94,6 @@ void pmult(ARR3 &pos, double val, ARR3 &res);
 void padd(ARR3 &pos1, ARR3 &pos2, ARR3 &res);
 void tconst(RFORM &rmat, ARR3 &pos, TFORM &tmat);
 void transpose_mat(RFORM &rmat, RFORM &imat);
-bool no_sol(bool p_invalid, bool n_invalid);
 void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 
 // Demo 2
@@ -103,6 +102,8 @@ void PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool
 void PATHGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
 void VELGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
 void ACCGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
+void POSGEN(vector<double> theta1, vector<double> theta2, vector<double> &d3, vector<double> theta4, 
+	vector<double> &x, vector<double> &y, vector<double> &z, vector<double> &phi);
 
 void compute_coeff(ARR5 &j, double t, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg, ARR5 &times);
 void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint);
