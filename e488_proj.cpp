@@ -20,6 +20,7 @@ void main(void) {
 	bool done;
 	bool gripper_status = false;
 	JOINT joint_vals, spt;
+	vector<vector<double>> traj_vals;
 
 	UTOI(B, brels);
 	UTOI(T, trelw);
@@ -47,10 +48,12 @@ void main(void) {
 				InvKin(spt);
 				break;
 			case 3 : // Trajectory Planner (x, y, z, phi)
-				TrajPlanPos();
+				traj_vals.clear();
+				TrajPlanPos(traj_vals);
 				break;
 			case 4 : // Trajectory Planner (joint vals)
-				TrajPlanJoint();
+				traj_vals.clear();
+				TrajPlanJoint(traj_vals);
 				break;
 			case 5 : // Stop Robot
 				printf("Stopping and Resetting Robot\n");
@@ -64,10 +67,13 @@ void main(void) {
 				SimpleMove();
 				break;
 			case 8 : // Custom
-				TrajCust();
+				traj_vals.clear();
+				TrajCust(traj_vals);
 				break;
 			case 9 : // Move with Path
-				ExecutePath();
+				ExecutePath(traj_vals);
+				traj_vals.clear();
+				break;
 			case 0 : // Exit
 				return; 
 				break;
@@ -280,7 +286,7 @@ void ToggleGripper(bool &status) {
 	Grasp(status);
 }
 
-void TrajPlanPos(void) {
+void TrajPlanPos(vector<vector<double>>& traj_vals) {
 	// Asks the user for a total time, velocity (???), set of points
 	// DEBUG: 	for now, just get the user to input positions (x, y, z, phi) for 
 	//			the different frames: A, B, C, G
@@ -358,10 +364,10 @@ void TrajPlanPos(void) {
 
 	// Plan the path
 	printf("Planning the Trajectory!\n");
-	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	traj_vals = PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
-void TrajPlanJoint(void) {
+void TrajPlanJoint(vector<vector<double>>& traj_vals) {
 	// Trajectory Planning with input of joint values
 	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
 
@@ -448,10 +454,10 @@ void TrajPlanJoint(void) {
 	UTOI_FLIP(g_pos, g_mat);
 
 	printf("\nPlanning the Trajectory!\n");
-	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	traj_vals = PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
-void TrajCust(void) {
+void TrajCust(vector<vector<double>>& traj_vals) {
 	// Trajectory Planning with input of joint values
 	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
 
@@ -516,10 +522,53 @@ void TrajCust(void) {
 	UTOI_FLIP(g_pos, g_mat);
 
 	printf("\nPlanning the Trajectory!\n");
-	PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	traj_vals = PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
 }
 
-void ExecutePath(void) {
+void ExecutePath(vector<vector<double>> traj_vals) {
+	// get the trajectory values into their own vector
+	vector<double> time;
+	vector<double> j1_pos, j2_pos, j3_pos, j4_pos;
+	vector<double> j1_vel, j2_vel, j3_vel, j4_vel;
+	vector<double> j1_acc, j2_acc, j3_acc, j4_acc;
+
+	time = traj_vals[0];
+	j1_pos = traj_vals[1];
+	j2_pos = traj_vals[2];
+	j3_pos = traj_vals[3];
+	j4_pos = traj_vals[4];
+	j1_vel = traj_vals[5];
+	j2_vel = traj_vals[6];
+	j3_vel = traj_vals[7];
+	j4_vel = traj_vals[8];
+	j1_acc = traj_vals[9];
+	j2_acc = traj_vals[10];
+	j3_acc = traj_vals[11];
+	j4_acc = traj_vals[12];
+
+	// get the time increments to send commands
+	int len = time.size();
+	double max_time = time[len-1];
+	int inc = 1000*max_time/len;
+
+	printf("Moving joints to (%f, %f, %f, %f)\n", RAD2DEG(j1_pos[len - 1]), RAD2DEG(j2_pos[len - 1]), j3_pos[len - 1], RAD2DEG(j4_pos[len - 1]));
+
+	for(int i = 0; i < len; i++) {
+		// convert values to appropriate values
+		JOINT conf{j1_pos[i], j2_pos[i], j3_pos[i], j4_pos[i]};
+		JOINT vel{j1_vel[i], j2_vel[i], j3_vel[i], j4_vel[i]};
+		JOINT acc{j1_acc[i], j2_acc[i], j3_acc[i], j4_acc[i]};
+
+		// JOINT conf{ RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]) };
+		// JOINT vel{ RAD2DEG(j1_vel[i]), RAD2DEG(j2_vel[i]), j3_vel[i], RAD2DEG(j4_vel[i]) };
+		// JOINT acc{ RAD2DEG(j1_acc[i]), RAD2DEG(j2_acc[i]), j3_acc[i], RAD2DEG(j4_acc[i]) };
+
+		MoveWithConfVelAcc(conf, vel, acc);
+
+		//sleep for inc amount of time
+		std::this_thread::sleep_for(std::chrono::milliseconds(inc));
+	}
+	StopRobot();
 	return;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1222,7 +1271,7 @@ void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c
 	pop_arr(vals, joint);
 }
 
-void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
+vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
 	/* 	Computes the path trajectory of a given set of points (max. 5)
 		Inputs: 
 			- t: total time for motion (user-specified)
@@ -1243,6 +1292,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 					to be continuous
 	*/
 	// convert all tool frames to position + orientation of frames (x, y, z, phi)
+	vector<vector<double>> return_vals;
 	JOINT a_pos, b_pos, c_pos, g_pos;	
 	ITOU(A, a_pos);
 	ITOU(B, b_pos);
@@ -1277,7 +1327,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	SOLVE(a_pos, curr_joint, a_near, a_far, ap, an);
 	if(!ap && !an) {
 		printf("Error: A is out of workspace!\n");
-		return;
+		return return_vals;
 	}
 
 	// A to B
@@ -1287,7 +1337,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	SOLVE(b_pos, a_near, b_near, b_far, bp, bn);
 	if(!bp && !bn) {
 		printf("Error: B is out of workspace!\n");
-		return;
+		return return_vals;
 	}
 
 	// B to C
@@ -1297,7 +1347,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	SOLVE(c_pos, b_near, c_near, c_far, cp, cn);
 	if(!cp && !cn) {
 		printf("Error: C is out of workspace!\n");
-		return;
+		return return_vals;
 	}
 
 	// C to G
@@ -1307,7 +1357,7 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	SOLVE(g_pos, c_near, g_near, g_far, gp, gn);
 	if(!gp && !gn) {
 		printf("Error: G is out of workspace!\n");
-		return;
+		return return_vals;
 	}
 
 	if(debug) {
@@ -1514,6 +1564,25 @@ void PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool
 	if (!acc_valid) {
 		printf("\n!-----WARNING-----!\nExceeded Acceleration limits!\n");
 	}
+	vector<double> t_vec;
+	to_vec(times, t_vec);
+
+	// return one big vector
+	return_vals.push_back(t_vec);
+	return_vals.push_back(theta1_pos);
+	return_vals.push_back(theta2_pos);
+	return_vals.push_back(d3_pos);
+	return_vals.push_back(theta4_pos);
+	return_vals.push_back(theta1_vel);
+	return_vals.push_back(theta2_vel);
+	return_vals.push_back(d3_vel);
+	return_vals.push_back(theta4_vel);
+	return_vals.push_back(theta1_acc);
+	return_vals.push_back(theta2_acc);
+	return_vals.push_back(d3_acc);
+	return_vals.push_back(theta4_acc);
+
+	return return_vals;
 }
 
 void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {

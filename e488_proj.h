@@ -5,6 +5,8 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 #include "stdafx.h"
 #include "ensc-488.h"
@@ -67,10 +69,10 @@ void FwdKinRad(JOINT &joint_vals, JOINT &spt);
 void InvKin(JOINT &spt);
 void SimpleMove(void);
 void ToggleGripper(bool &status);
-void TrajPlanPos(void);
-void TrajPlanJoint(void);
-void TrajCust(void);
-void ExecutePath(void);
+void TrajPlanPos(vector<vector<double>>& traj_vals);
+void TrajPlanJoint(vector<vector<double>>& traj_vals);
+void TrajCust(vector<vector<double>>& traj_vals);
+void ExecutePath(vector<vector<double>> traj_vals);
 
 // functions for class
 // Basic Matrix Transformation Procedures
@@ -116,7 +118,7 @@ void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 
 // Demo 2
 void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
-void PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
+vector<vector<double>> PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
 void PATHGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
 void VELGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
 void ACCGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
