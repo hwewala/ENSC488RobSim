@@ -72,7 +72,6 @@ void main(void) {
 				break;
 			case 9 : // Move with Path
 				ExecutePath(traj_vals);
-				traj_vals.clear();
 				break;
 			case 0 : // Exit
 				return; 
@@ -470,9 +469,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	printf("Velocity between via points: %f\n", vel);
 
 	double j1a, j2a, j3a, j4a;
-	j1a = 100;
-	j2a = 1;
-	j3a = -101;
+	j1a = 90;
+	j2a = 10;
+	j3a = -175;
 	j4a = 10;
 	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
 	bool a_valid = false;
@@ -480,20 +479,20 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	if(!a_valid) return;
 
 	double j1b, j2b, j3b, j4b;
-	j1b = 90;
-	j2b = 1;
-	j3b = -102;
-	j4b = 20;
+	j1b = 80;
+	j2b = 10;
+	j3b = -170;
+	j4b = 10;
 	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
 	bool b_valid = false;
 	check_joints(jb, b_valid);
 	if(!b_valid) return;
 
 	double j1c, j2c, j3c, j4c;
-	j1c = 80;
-	j2c = 1;
-	j3c = -103;
-	j4c = 30;
+	j1c = 75;
+	j2c = 10;
+	j3c = -160;
+	j4c = 10;
 	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
 	bool c_valid = false;
 	check_joints(jc, c_valid);
@@ -501,9 +500,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 
 	double j1g, j2g, j3g, j4g;
 	j1g = 70;
-	j2g = 1;
-	j3g = -104;
-	j4g = 40;
+	j2g = 10;
+	j3g = -155;
+	j4g = 10;
 	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
 	bool g_valid = false;
 	check_joints(jg, g_valid);
@@ -547,15 +546,17 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 	j4_acc = traj_vals[12];
 
 	// get the time increments to send commands
-	int len = time.size();
+	int len = j1_pos.size();
 	double max_time = time[len-1];
-	int inc = 1000*max_time/len;
+	int inc = 1000*(max_time+2)/len;
 
 	printf("Moving joints to (%f, %f, %f, %f)\n", RAD2DEG(j1_pos[len - 1]), RAD2DEG(j2_pos[len - 1]), j3_pos[len - 1], RAD2DEG(j4_pos[len - 1]));
 
 	for(int i = 0; i < len; i++) {
 		// convert values to appropriate values
-		JOINT conf{j1_pos[i], j2_pos[i], j3_pos[i], j4_pos[i]};
+		// printf("Pos #%d: (%f, %f, %f, %f)\n", i+1, j1_pos[len - 1], j2_pos[len - 1], j3_pos[len - 1], j4_pos[len - 1]);
+		
+		JOINT conf{RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i])};
 		JOINT vel{j1_vel[i], j2_vel[i], j3_vel[i], j4_vel[i]};
 		JOINT acc{j1_acc[i], j2_acc[i], j3_acc[i], j4_acc[i]};
 
@@ -564,7 +565,7 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 		// JOINT acc{ RAD2DEG(j1_acc[i]), RAD2DEG(j2_acc[i]), j3_acc[i], RAD2DEG(j4_acc[i]) };
 
 		MoveWithConfVelAcc(conf, vel, acc);
-
+		printf("Pos #%d: (%f, %f, %f, %f)\n", i + 1, RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]));
 		//sleep for inc amount of time
 		std::this_thread::sleep_for(std::chrono::milliseconds(inc));
 	}
@@ -1564,11 +1565,11 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	if (!acc_valid) {
 		printf("\n!-----WARNING-----!\nExceeded Acceleration limits!\n");
 	}
-	vector<double> t_vec;
-	to_vec(times, t_vec);
+	// vector<double> t_vec;
+	// to_vec(times, t_vec);
 
 	// return one big vector
-	return_vals.push_back(t_vec);
+	return_vals.push_back(curr_time);
 	return_vals.push_back(theta1_pos);
 	return_vals.push_back(theta2_pos);
 	return_vals.push_back(d3_pos);
