@@ -64,7 +64,8 @@ void main(void) {
 				ToggleGripper(gripper_status);
 				break;
 			case 7 : // MoveToConfig
-				SimpleMove();
+				//SimpleMove();
+				Move();
 				break;
 			case 8 : // Custom
 				traj_vals.clear();
@@ -256,7 +257,7 @@ void InvKin(JOINT &spt) {
 void SimpleMove(void) {
 	double theta_1, theta_2, translation, phi;
 	// moves robot to configuration
-	printf("Move robot to configuration (x, y, z, phi):\n");
+	printf("Move robot to configuration (theta1, theta2, d3, theta4):\n");
 	printf("first joint angle: ");
 	cin >> theta_1;
 	printf("second joint angle: ");
@@ -271,6 +272,36 @@ void SimpleMove(void) {
 	MoveToConfiguration(pos);
 	return;
 }
+
+void Move(void) {
+	double theta1, theta2, d3, theta4, vel, acc;
+	printf("Move robot to configuration with vel and acc\n");
+	printf("j1: ");
+	cin >> theta1;
+	printf("j2: ");
+	cin >> theta2;
+	printf("j3: ");
+	cin >> d3;
+	printf("j4: ");
+	cin >> theta4;
+	printf("vel: ");
+	cin >> vel;
+	printf("acc: ");
+	cin >> acc;
+
+	JOINT pos{ theta1, theta2, d3, theta4 };
+	JOINT vels{ vel, vel, vel, vel };
+	JOINT accs{ acc, acc, acc, acc };
+
+	MoveWithConfVelAcc(pos, vels, accs);
+
+	int time = 1000 * 1;
+	std::this_thread::sleep_for(std::chrono::milliseconds(time));
+
+	StopRobot();
+	ResetRobot();
+}
+
 void ToggleGripper(bool &status) {
 	//Toggle Status of gripper then open/close it
 	//Gripper opens when status is false and closes when status is true
@@ -556,6 +587,7 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 		// convert values to appropriate values
 		// printf("Pos #%d: (%f, %f, %f, %f)\n", i+1, j1_pos[len - 1], j2_pos[len - 1], j3_pos[len - 1], j4_pos[len - 1]);
 		
+		//JOINT conf{ j1_pos[i], j2_pos[i], j3_pos[i], j4_pos[i] };
 		JOINT conf{RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i])};
 		JOINT vel{j1_vel[i], j2_vel[i], j3_vel[i], j4_vel[i]};
 		JOINT acc{j1_acc[i], j2_acc[i], j3_acc[i], j4_acc[i]};
@@ -567,9 +599,13 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 		MoveWithConfVelAcc(conf, vel, acc);
 		printf("Pos #%d: (%f, %f, %f, %f)\n", i + 1, RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]));
 		//sleep for inc amount of time
-		std::this_thread::sleep_for(std::chrono::milliseconds(inc));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(inc));
+		int milli = 1000 * 0.1;
+		std::this_thread::sleep_for(std::chrono::milliseconds(milli));
+		StopRobot();
+		ResetRobot();
 	}
-	StopRobot();
+	
 	return;
 }
 ////////////////////////////////////////////////////////////////////////////////
