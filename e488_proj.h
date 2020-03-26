@@ -68,6 +68,7 @@ void FwdKinDeg(JOINT &joint_vals, JOINT &spt);
 void FwdKinRad(JOINT &joint_vals, JOINT &spt);
 void InvKin(JOINT &spt);
 void SimpleMove(void);
+void Move(void);
 void ToggleGripper(bool &status);
 void TrajPlanPos(vector<vector<double>>& traj_vals);
 void TrajPlanJoint(vector<vector<double>>& traj_vals);

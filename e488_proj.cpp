@@ -579,33 +579,24 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 	// get the time increments to send commands
 	int len = j1_pos.size();
 	double max_time = time[len-1];
-	int inc = 1000*(max_time+2)/len;
+	int inc = 1000*(max_time)/len;
 
 	printf("Moving joints to (%f, %f, %f, %f)\n", RAD2DEG(j1_pos[len - 1]), RAD2DEG(j2_pos[len - 1]), j3_pos[len - 1], RAD2DEG(j4_pos[len - 1]));
 
 	for(int i = 0; i < len; i++) {
-		// convert values to appropriate values
-		// printf("Pos #%d: (%f, %f, %f, %f)\n", i+1, j1_pos[len - 1], j2_pos[len - 1], j3_pos[len - 1], j4_pos[len - 1]);
-		
-		//JOINT conf{ j1_pos[i], j2_pos[i], j3_pos[i], j4_pos[i] };
-		JOINT conf{RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i])};
-		JOINT vel{j1_vel[i], j2_vel[i], j3_vel[i], j4_vel[i]};
-		JOINT acc{j1_acc[i], j2_acc[i], j3_acc[i], j4_acc[i]};
+		// convert values to appropriate values		
 
-		// JOINT conf{ RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]) };
-		// JOINT vel{ RAD2DEG(j1_vel[i]), RAD2DEG(j2_vel[i]), j3_vel[i], RAD2DEG(j4_vel[i]) };
-		// JOINT acc{ RAD2DEG(j1_acc[i]), RAD2DEG(j2_acc[i]), j3_acc[i], RAD2DEG(j4_acc[i]) };
+		JOINT conf{ RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]) };
+		JOINT vel{ RAD2DEG(j1_vel[i]), RAD2DEG(j2_vel[i]), j3_vel[i], RAD2DEG(j4_vel[i]) };
+		JOINT acc{ RAD2DEG(j1_acc[i]), RAD2DEG(j2_acc[i]), j3_acc[i], RAD2DEG(j4_acc[i]) };
 
 		MoveWithConfVelAcc(conf, vel, acc);
 		printf("Pos #%d: (%f, %f, %f, %f)\n", i + 1, RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]));
 		//sleep for inc amount of time
-		//std::this_thread::sleep_for(std::chrono::milliseconds(inc));
-		int milli = 1000 * 0.1;
-		std::this_thread::sleep_for(std::chrono::milliseconds(milli));
-		StopRobot();
-		ResetRobot();
+		std::this_thread::sleep_for(std::chrono::milliseconds(inc));
 	}
-	
+	StopRobot();
+	ResetRobot();
 	return;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1645,6 +1636,7 @@ void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>
 
 void VELGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
 	// Computes the velocity of the path vs. time
+	// Units: rad/s
 	double t = tf - ti;
 	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
@@ -1656,6 +1648,7 @@ void VELGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>&
 
 void ACCGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
 	// Computes the acceleration of the path vs. time
+	// Units: rad/s^2
 	double t = tf - ti;
 	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
