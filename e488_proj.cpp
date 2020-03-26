@@ -1231,8 +1231,6 @@ void compute_times(double t, ARR5 &j1, ARR5 &j2, ARR5 &j3, ARR5 &j4, ARR5 &times
 			times[i] = times[i-1]+lens[i-1]*t/sum;
 		}
 	}
-	// ARR5 temp{lens[0]/sum*t, lens[1]/sum*t, lens[2]/sum*t, lens[3]/sum*t, t};
-	// pop_arr(temp, times);
 }
 
 void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
@@ -1592,8 +1590,6 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	if (!acc_valid) {
 		printf("\n!-----WARNING-----!\nExceeded Acceleration limits!\n");
 	}
-	// vector<double> t_vec;
-	// to_vec(times, t_vec);
 
 	// return one big vector
 	return_vals.push_back(curr_time);
