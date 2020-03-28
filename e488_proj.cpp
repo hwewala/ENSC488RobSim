@@ -1035,6 +1035,20 @@ void print(ARR5 &arr) {
 	return;
 }
 
+void print(ARR6& arr) {
+	// Description: prints the (size = 5)
+	int n = 6;
+	printf("[");
+	for (int i = 0; i < n; i++) {
+		printf("%f", arr[i]);
+		if (i < n-1) {
+			printf("\t");
+		}
+	}
+	printf("]\n");
+	return;
+}
+
 void print(vector<double>& vec) {
 	//prints a vector
 	printf("[");
@@ -1097,6 +1111,13 @@ void pop_arr(ARR5 &vals, ARR5 &arr) {
 void pop_arr(ARR3 &vals, ARR3 &arr) {
 	// populates arr with vals
 	for(int i = 0; i < 3; i++) {
+		arr[i] = vals[i];
+	}
+}
+
+void pop_arr(ARR6& vals, ARR6& arr) {
+	// populates arr with vals
+	for (int i = 0; i < 6; i++) {
 		arr[i] = vals[i];
 	}
 }
@@ -1207,6 +1228,20 @@ void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, 
 	pop_arr(test, coeff);
 }
 
+void QUINCOEF(double pos0, double posf, double vel0, double velf, double acc0, double accf, double tf, ARR6& coeff) {
+	// Calculates the quartic coefficients
+	double a0, a1, a2, a3, a4, a5;
+	a0 = pos0;
+	a1 = vel0;
+	a2 = acc0 / 2;
+	a3 = (20 * posf - 20 * pos0 - (8 * velf + 12 * vel0) * tf - (3 * acc0 - accf) * pow(tf, 2)) / (2*pow(tf,3));
+	a4 = (30 * pos0 - 30 * posf + (14 * velf + 16 * vel0) * tf + (3 * acc0 - 2 * accf) * pow(tf, 2)) / (2 * pow(tf, 4));
+	a5 = (12 * posf - 12 * pos0 - (6 * velf + 6 * vel0) * tf - (acc0 - accf) * pow(tf, 2)) / (2 * pow(tf, 5));
+
+	ARR6 test{ a0, a1, a2, a3, a4, a5 };
+	pop_arr(test, coeff);
+}
+
 void compute_times(double t, ARR5 &j1, ARR5 &j2, ARR5 &j3, ARR5 &j4, ARR5 &times) {
 	// computes the times at each point based on the displacement for all the joints
 	// DEBUG: This does not include displacement from joint 3
@@ -1243,20 +1278,53 @@ void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOI
 	compute_slopes(times, j, slopes);
 
 	// the velocities at the via points, vel at start and end equal 0
-	ARR3 vels;
+	ARR5 vels;
 	compute_vels(slopes, vels);
 
 	// curr -> A
-	CUBCOEF(j[0], j[1], 0, vels[0], t_seg[0], curra);
+	CUBCOEF(j[0], j[1], vels[0], vels[1], t_seg[0], curra);
 
 	// A -> B
-	CUBCOEF(j[1], j[2], vels[0], vels[1], t_seg[1], ab);
+	CUBCOEF(j[1], j[2], vels[1], vels[2], t_seg[1], ab);
 
 	// B -> C
-	CUBCOEF(j[2], j[3], vels[1], vels[2], t_seg[2], bc);
+	CUBCOEF(j[2], j[3], vels[2], vels[3], t_seg[2], bc);
 
 	// C -> G
-	CUBCOEF(j[3], j[4], vels[2], 0, t_seg[4], cg);
+	CUBCOEF(j[3], j[4], vels[3], vels[4], t_seg[3], cg);
+}
+
+void compute_quincoeff(ARR5& j, ARR5& times, ARR6& curra, ARR6& ab, ARR6& bc, ARR6& cg) {
+	// computes the quintic coefficients
+	ARR4 slopes;
+	ARR4 t_seg{ times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3] };
+	
+	ARR5 vels, accs;
+	// the velocities at the via points, vel at start and end equal 0
+	compute_slopes(times, j, slopes);
+	compute_vels(slopes, vels);
+
+	// the accelerations at the via points, acc at start and end equal 0 
+	ARR4 vslopes;
+	compute_slopes(times, vels, vslopes);
+	compute_accs(vslopes, accs);
+
+	printf("vel at vias\n");
+	print(vels);
+	printf("acc at vias\n");
+	print(accs);
+
+	// curr -> A
+	QUINCOEF(j[0], j[1], vels[0], vels[1], accs[0], accs[1], t_seg[0], curra);
+	
+	// A -> B
+	QUINCOEF(j[1], j[2], vels[1], vels[2], accs[1], accs[2], t_seg[1], ab);
+
+	// B -> C
+	QUINCOEF(j[2], j[3], vels[2], vels[3], accs[2], accs[3], t_seg[2], bc);
+
+	// C -> G
+	QUINCOEF(j[3], j[4], vels[3], vels[4], accs[3], accs[4], t_seg[3], cg);
 }
 
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes) {
@@ -1267,19 +1335,26 @@ void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes) {
 	}
 }
 
-void compute_vels(ARR4 &slopes, ARR3 &vels) {
+void compute_vels(ARR4 &slopes, ARR5 &vels) {
 	/* computes the velocity at each via point
 		- if slope's sign change, vel = 0
 		- if slope's sign does not change, vel = average of two slopes */
-	int sz = sizeof(vels)/sizeof(*vels);
-	for(int i = 0; i < sz; i++) {
-		if(slopes[i] > 0 && slopes[i+1] < 0 || slopes[i] < 0 && slopes[i+1] > 0) {
-			vels[i] = 0;
+	ARR3 temp1;
+	int sz = sizeof(temp1) / sizeof(*temp1);
+	for (int i = 0; i < sz; i++) {
+		if (slopes[i] > 0 && slopes[i + 1] < 0 || slopes[i] < 0 && slopes[i + 1] > 0) {
+			temp1[i] = 0;
 		}
 		else {
-			vels[i] = (slopes[i] + slopes[i+1])/2;
+			temp1[i] = (slopes[i] + slopes[i + 1]) / 2;
 		}
 	}
+	ARR5 temp2{ 0, temp1[0], temp1[1], temp1[2], 0 };
+	pop_arr(temp2, vels);
+}
+
+void compute_accs(ARR4& slopes, ARR5& accs) {
+	compute_vels(slopes, accs);
 }
 
 void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint) {
@@ -1428,21 +1503,38 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	ARR5 times;
 	compute_times(t, j1, j2, j3, j4, times);
 
+	//// cubic coefficients for theta1
+	//JOINT curra1, ab1, bc1, cg1;
+	//compute_coeff(j1, times, curra1, ab1, bc1, cg1);
+
+	//// cubic coefficients for theta2
+	//JOINT curra2, ab2, bc2, cg2;
+	//compute_coeff(j2, times, curra2, ab2, bc2, cg2);
+
+	//// cubic coefficients for d3
+	//JOINT curra3, ab3, bc3, cg3;
+	//compute_coeff(j3, times, curra3, ab3, bc3, cg3);
+
+	//// cubic coefficients for theta4
+	//JOINT curra4, ab4, bc4, cg4;
+	//compute_coeff(j4, times, curra4, ab4, bc4, cg4);
+
+
 	// cubic coefficients for theta1
-	JOINT curra1, ab1, bc1, cg1;
-	compute_coeff(j1, times, curra1, ab1, bc1, cg1);
+	ARR6 curra1, ab1, bc1, cg1;
+	compute_quincoeff(j1, times, curra1, ab1, bc1, cg1);
 
 	// cubic coefficients for theta2
-	JOINT curra2, ab2, bc2, cg2;
-	compute_coeff(j2, times, curra2, ab2, bc2, cg2);
+	ARR6 curra2, ab2, bc2, cg2;
+	compute_quincoeff(j2, times, curra2, ab2, bc2, cg2);
 
 	// cubic coefficients for d3
-	JOINT curra3, ab3, bc3, cg3;
-	compute_coeff(j3, times, curra3, ab3, bc3, cg3);
+	ARR6 curra3, ab3, bc3, cg3;
+	compute_quincoeff(j3, times, curra3, ab3, bc3, cg3);
 
 	// cubic coefficients for theta4
-	JOINT curra4, ab4, bc4, cg4;
-	compute_coeff(j4, times, curra4, ab4, bc4, cg4);
+	ARR6 curra4, ab4, bc4, cg4;
+	compute_quincoeff(j4, times, curra4, ab4, bc4, cg4);
 
 	if(debug) {
 		printf("\n--Cubic Coefficients (a0, a1, a2, a3)--\n");
@@ -1609,7 +1701,7 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	return return_vals;
 }
 
-void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {
+void PATHGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {
 	/* Computes the position of the path, theta(t)
 		Input: 
 			- ti: initial time for cubic spline
@@ -1626,30 +1718,30 @@ void PATHGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>
 	int num_points = (t*sample_rate) + 1; // + 1 to get the final position as well
 	for(double i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i/sample_rate);
-		pos.push_back(coeff[0] + coeff[1]*curr_time[i] + coeff[2]*pow(curr_time[i], 2) + coeff[3]*pow(curr_time[i], 3));
+		pos.push_back(coeff[0] + coeff[1]*curr_time[i] + coeff[2]*pow(curr_time[i], 2) + coeff[3]*pow(curr_time[i], 3) + coeff[4]*pow(curr_time[i], 4) + coeff[5]*pow(curr_time[i], 5));
 	}
 }
 
-void VELGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
+void VELGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
 	// Computes the velocity of the path vs. time
 	// Units: rad/s
 	double t = tf - ti;
 	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
-		vel.push_back(coeff[1] + 2*coeff[2]*curr_time[i] + 3*coeff[3]*pow(curr_time[i], 2));
+		vel.push_back(coeff[1] + 2*coeff[2]*curr_time[i] + 3*coeff[3]*pow(curr_time[i], 2) + 4*coeff[4]*pow(curr_time[i], 3) + 5*coeff[5]*pow(curr_time[i], 4));
 	}
 
 }
 
-void ACCGEN(double ti, double tf, int sample_rate, JOINT &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
+void ACCGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
 	// Computes the acceleration of the path vs. time
 	// Units: rad/s^2
 	double t = tf - ti;
 	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
-		acc.push_back(2*coeff[2] + 3*coeff[3]*curr_time[i]);
+		acc.push_back(2*coeff[2] +	6*coeff[3]*curr_time[i] + 12*coeff[4]*pow(curr_time[i], 2) + 20*coeff[5]*pow(curr_time[i], 3));
 	}
 }
 

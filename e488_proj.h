@@ -55,6 +55,7 @@ typedef double CFORM[3][4];
 typedef double ARR5[5];
 typedef double ARR4[4];
 typedef double ARR3[3];
+typedef double ARR6[6];
 
 JOINT T{0, 0, L135, 0};
 JOINT B{0, 0, L405, 0};
@@ -96,6 +97,7 @@ void print(TFORM &mat);
 void print(JOINT &arr);
 void print(ARR3 &arr);
 void print(ARR5 &arr);
+void print(ARR6& arr);
 void print(vector<double>& vec);
 void get_r(TFORM &tmat, RFORM &rmat);
 void get_pos(TFORM &tmat, ARR3 &pos);
@@ -120,16 +122,19 @@ void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 // Demo 2
 void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
 vector<vector<double>> PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
-void PATHGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
-void VELGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
-void ACCGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
+void PATHGEN(double ti, double tf, int sample_rate, ARR6& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
+void VELGEN(double ti, double tf, int sample_rate, ARR6& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
+void ACCGEN(double ti, double tf, int sample_rate, ARR6& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull = false);
 void POSGEN(vector<double> theta1, vector<double> theta2, vector<double> &d3, vector<double> theta4, 
 	vector<double> &x, vector<double> &y, vector<double> &z, vector<double> &phi);
 
 void compute_coeff(ARR5 &j, double t, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg, ARR5 &times);
+void compute_quincoeff(ARR5& j, double t, ARR6& curra, ARR6& ab, ARR6& bc, ARR6& cg, ARR5& times);
 void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c_joint, JOINT& g_joint, ARR5 &joint);
 void to_vec(ARR5 &arr, vector<double> &vec);
 void to_arr(vector<double> &vec, ARR4 &arr);
 void compute_times(double t, ARR5 &j1, ARR5 &j2, ARR5 &j3, ARR5 &j4, ARR5 &times);
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes);
-void compute_vels(ARR4 &slopes, ARR3 &vels);
+void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes);
+void compute_vels(ARR4& slopes, ARR5& vels);
+void compute_accs(ARR4& slopes, ARR5& accs);
