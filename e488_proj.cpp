@@ -1663,10 +1663,23 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	write_csv("Acceleration.csv", acc_vals);
 
 	// X vs Y Values
-	vector<double> x, y, z, phi;
+	vector<double> x, y, z, phi, x_targ, y_targ;
 	POSGEN(theta1_pos, theta2_pos, d3_pos, theta4_pos, x, y, z, phi);
 	vector<pair<string, vector<double>>> xy_vals = { {"X", x}, {"Y", y}, {"Z", z}, {"Phi", phi}};
 	write_csv("XY.csv", xy_vals);
+	// Get the target X and Y values for all (4) via points
+	x_targ.push_back(a_pos[0]);
+	x_targ.push_back(b_pos[0]);
+	x_targ.push_back(c_pos[0]);
+	x_targ.push_back(g_pos[0]);
+
+	y_targ.push_back(a_pos[1]);
+	y_targ.push_back(b_pos[1]);
+	y_targ.push_back(c_pos[1]);
+	y_targ.push_back(g_pos[1]);
+
+	vector<pair<string, vector<double>>> xy_targ_vals = { {"X_targ", x_targ}, {"Y_targ", y_targ} };
+	write_csv("XY_targ.csv", xy_targ_vals);
 
 	// Check Velocity and Acceleration limits
 	vector<vector<double>> vel_check{theta1_vel, theta2_vel, d3_vel, theta4_vel};
