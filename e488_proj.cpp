@@ -1715,7 +1715,7 @@ void PATHGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double> 
 			- pos (y, t): the output positions
 	*/
 	double t = tf - ti;
-	int num_points = (t*sample_rate) + 1; // + 1 to get the final position as well
+	int num_points = (t*sample_rate) + 2; // + 2 to get the final position as well
 	for(double i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i/sample_rate);
 		pos.push_back(coeff[0] + coeff[1]*curr_time[i] + coeff[2]*pow(curr_time[i], 2) + coeff[3]*pow(curr_time[i], 3) + coeff[4]*pow(curr_time[i], 4) + coeff[5]*pow(curr_time[i], 5));
@@ -1726,7 +1726,7 @@ void VELGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& 
 	// Computes the velocity of the path vs. time
 	// Units: rad/s
 	double t = tf - ti;
-	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
+	int num_points = (t * sample_rate) + 2; // + 2 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
 		vel.push_back(coeff[1] + 2*coeff[2]*curr_time[i] + 3*coeff[3]*pow(curr_time[i], 2) + 4*coeff[4]*pow(curr_time[i], 3) + 5*coeff[5]*pow(curr_time[i], 4));
@@ -1738,7 +1738,7 @@ void ACCGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& 
 	// Computes the acceleration of the path vs. time
 	// Units: rad/s^2
 	double t = tf - ti;
-	int num_points = (t * sample_rate) + 1; // + 1 to get the final position as well
+	int num_points = (t * sample_rate) + 2; // + 2 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
 		acc.push_back(2*coeff[2] +	6*coeff[3]*curr_time[i] + 12*coeff[4]*pow(curr_time[i], 2) + 20*coeff[5]*pow(curr_time[i], 3));
