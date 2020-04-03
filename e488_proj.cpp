@@ -492,7 +492,7 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
 
 	// get total time of manipulator motion
-	double t = 16;
+	double t = 0.5;
 	printf("Time for motion (s): %f\n", t);
 
 	// get velocity between via points
@@ -500,9 +500,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	printf("Velocity between via points: %f\n", vel);
 
 	double j1a, j2a, j3a, j4a;
-	j1a = 90;
+	j1a = 0;
 	j2a = 10;
-	j3a = -175;
+	j3a = -199;
 	j4a = 10;
 	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
 	bool a_valid = false;
@@ -510,9 +510,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	if(!a_valid) return;
 
 	double j1b, j2b, j3b, j4b;
-	j1b = 80;
+	j1b = 90;
 	j2b = 10;
-	j3b = -170;
+	j3b = -101;
 	j4b = 10;
 	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
 	bool b_valid = false;
@@ -520,9 +520,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	if(!b_valid) return;
 
 	double j1c, j2c, j3c, j4c;
-	j1c = 75;
+	j1c = 135;
 	j2c = 10;
-	j3c = -160;
+	j3c = -199;
 	j4c = 10;
 	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
 	bool c_valid = false;
@@ -530,9 +530,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	if(!c_valid) return;
 
 	double j1g, j2g, j3g, j4g;
-	j1g = 70;
+	j1g = 45;
 	j2g = 10;
-	j3g = -155;
+	j3g = -101;
 	j4g = 10;
 	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
 	bool g_valid = false;
@@ -1242,33 +1242,123 @@ void QUINCOEF(double pos0, double posf, double vel0, double velf, double acc0, d
 	pop_arr(test, coeff);
 }
 
-void compute_times(double t, ARR5 &j1, ARR5 &j2, ARR5 &j3, ARR5 &j4, ARR5 &times) {
+void compute_times(double& t, ARR5& j1, ARR5& j2, ARR5& j3, ARR5& j4, ARR5& times) {
 	// computes the times at each point based on the displacement for all the joints
 	// DEBUG: This does not include displacement from joint 3
 	// from 0 -> A -> B -> C -> G
-	ARR4 lens;
-	double sum = 0;
-	int sz = sizeof(lens) / sizeof(*lens);
-	for (int i = 0; i < sz; i++) {
-		lens[i] = abs(j1[i+1] - j1[i]) + abs(j2[i+1] - j2[i]) + abs(j4[i+1] - j4[i]);
-		sum += lens[i];
-	}
+	int option = 2;
 	
-	sz = sizeof(times) / sizeof(*times);
-	for(int i = 0; i < sz; i++) {
-		if(i == 0) {
-			times[i] = 0;
+	if (option == 1) {
+		ARR4 lens;
+		double sum = 0;
+		int sz = sizeof(lens) / sizeof(*lens);
+		for (int i = 0; i < sz; i++) {
+			lens[i] = abs(j1[i + 1] - j1[i]) + abs(j2[i + 1] - j2[i]) + 0.25 * abs(j3[i + 1] - j3[i]) + abs(j4[i + 1] - j4[i]);
+			sum += lens[i];
 		}
-		else if(i == sz-1) {
-			times[i] = t;
-		}
-		else {
-			times[i] = times[i-1]+lens[i-1]*t/sum;
+
+		sz = sizeof(times) / sizeof(*times);
+		for (int i = 0; i < sz; i++) {
+			if (i == 0) {
+				times[i] = 0;
+			}
+			else if (i == sz - 1) {
+				times[i] = t;
+			}
+			else {
+				times[i] = times[i - 1] + lens[i - 1] * t / sum;
+			}
 		}
 	}
+	else
+	{
+		// convert arrays to a matrix
+		vector<vector<double>> vals;
+		vector<double> temp1, temp2, temp3, temp4;
+		to_vec(j1, temp1);
+		vals.push_back(temp1);
+		to_vec(j2, temp2);
+		vals.push_back(temp2);
+		to_vec(j3, temp3);
+		vals.push_back(temp3);
+		to_vec(j4, temp4);
+		vals.push_back(temp4);
+
+
+		// new method of splitting up the times 
+		// sum up the whole displacement for each joint
+		int num_points = 4;
+		ARR4 sums{ 0, 0, 0, 0 };
+		vector<vector<double>> lens;
+		for(int i = 0; i < num_points; i++) {
+			vector<double> temp;
+			for (int j = 0; j < num_points; j++) {
+				double val = abs(vals[i][j + 1] - vals[i][j]);
+				sums[i] += val;
+				temp.push_back(val);
+			}
+			lens.push_back(temp);
+		}
+
+		// compute the average velocity
+		ARR4 vels;
+		for (int i = 0; i < num_points; i++) {
+			vels[i] = sums[i] / t;
+		}
+
+		// check if average velocity is above any of the limits
+		ARR4 ratios1;
+		ARR4 lims{ J1V_LIM, J2V_LIM, J3V_LIM, J4V_LIM };
+		for (int i = 0; i < num_points; i++) {
+			ratios1[i] = vels[i] / lims[i];
+		}
+	
+		// if any of them are above the limit, increase the time so they are not above the limit
+		bool t_changed = false;
+		vector<double> biggest {0, 0};
+		ARR5 big_vals;
+		double t_new = t;
+		for (int i = 0; i < num_points; i++) {
+			if (ratios1[i] > biggest[1]) {
+				biggest[0] = i;
+				biggest[1] = ratios1[i];
+				t_changed = true;
+			}
+		}
+		int idx = (int)biggest[0];
+		if (t_changed) {
+			t = sums[idx] / lims[idx];
+			printf("\nRecalculated time to: %f\n", t);
+		}
+
+		// compute the time segment with the biggest displacement
+		ARR4 ratios;
+		double sum_len = sums[idx];
+		vector<double> curr_len = lens[idx];
+
+		int sz = sizeof(times) / sizeof(*times);
+		for (int i = 0; i < sz; i++) {
+			if (i == sz - 1) {
+				// last value
+				times[i] = t;
+			}
+			else if (i == 0) {
+				times[i] = 0;
+			}
+			else {
+				// 
+				times[i] = times[i-1] + curr_len[i-1] * t / sums[idx];
+			}
+			printf("time: %f\n", times[i]);
+		}
+		return;
+	}
+
+	// 0 a b c g
+	return;
 }
 
-void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
+void compute_coeff(ARR5& j, ARR5& times, JOINT& curra, JOINT& ab, JOINT& bc, JOINT& cg) {
 	// takes the joint values, and computes the cubic coefficients between subsequent 
 	// joint values
 	// Assumes Curr -> A -> B -> C -> G
@@ -1294,38 +1384,38 @@ void compute_coeff(ARR5 &j, ARR5 &times, JOINT& curra, JOINT& ab, JOINT& bc, JOI
 	CUBCOEF(j[3], j[4], vels[3], vels[4], t_seg[3], cg);
 }
 
-void compute_quincoeff(ARR5& j, ARR5& times, ARR6& curra, ARR6& ab, ARR6& bc, ARR6& cg) {
-	// computes the quintic coefficients
-	ARR4 slopes;
-	ARR4 t_seg{ times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3] };
-	
-	ARR5 vels, accs;
-	// the velocities at the via points, vel at start and end equal 0
-	compute_slopes(times, j, slopes);
-	compute_vels(slopes, vels);
-
-	// the accelerations at the via points, acc at start and end equal 0 
-	ARR4 vslopes;
-	compute_slopes(times, vels, vslopes);
-	compute_accs(vslopes, accs);
-
-	printf("vel at vias\n");
-	print(vels);
-	printf("acc at vias\n");
-	print(accs);
-
-	// curr -> A
-	QUINCOEF(j[0], j[1], vels[0], vels[1], accs[0], accs[1], t_seg[0], curra);
-	
-	// A -> B
-	QUINCOEF(j[1], j[2], vels[1], vels[2], accs[1], accs[2], t_seg[1], ab);
-
-	// B -> C
-	QUINCOEF(j[2], j[3], vels[2], vels[3], accs[2], accs[3], t_seg[2], bc);
-
-	// C -> G
-	QUINCOEF(j[3], j[4], vels[3], vels[4], accs[3], accs[4], t_seg[3], cg);
-}
+//void compute_quincoeff(ARR5& j, ARR5& times, ARR6& curra, ARR6& ab, ARR6& bc, ARR6& cg) {
+//	// computes the quintic coefficients
+//	ARR4 slopes;
+//	ARR4 t_seg{ times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3] };
+//	
+//	ARR5 vels, accs;
+//	// the velocities at the via points, vel at start and end equal 0
+//	compute_slopes(times, j, slopes);
+//	compute_vels(slopes, vels);
+//
+//	// the accelerations at the via points, acc at start and end equal 0 
+//	ARR4 vslopes;
+//	compute_slopes(times, vels, vslopes);
+//	compute_accs(vslopes, accs);
+//
+//	printf("vel at vias\n");
+//	print(vels);
+//	printf("acc at vias\n");
+//	print(accs);
+//
+//	// curr -> A
+//	QUINCOEF(j[0], j[1], vels[0], vels[1], accs[0], accs[1], t_seg[0], curra);
+//	
+//	// A -> B
+//	QUINCOEF(j[1], j[2], vels[1], vels[2], accs[1], accs[2], t_seg[1], ab);
+//
+//	// B -> C
+//	QUINCOEF(j[2], j[3], vels[2], vels[3], accs[2], accs[3], t_seg[2], bc);
+//
+//	// C -> G
+//	QUINCOEF(j[3], j[4], vels[3], vels[4], accs[3], accs[4], t_seg[3], cg);
+//}
 
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes) {
 	// computes the slope of the line segment
@@ -1349,7 +1439,7 @@ void compute_vels(ARR4 &slopes, ARR5 &vels) {
 			temp1[i] = (slopes[i] + slopes[i + 1]) / 2;
 		}
 	}
-	ARR5 temp2{ 0, temp1[0], temp1[1], temp1[2], 0 };
+	ARR5 temp2{ 0, temp1[0], temp1[1],  temp1[2], 0 };
 	pop_arr(temp2, vels);
 }
 
@@ -1503,38 +1593,43 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	ARR5 times;
 	compute_times(t, j1, j2, j3, j4, times);
 
+	if (debug) {
+		printf("time segments: ");
+		print(times);
+	}
+
 	//// cubic coefficients for theta1
-	//JOINT curra1, ab1, bc1, cg1;
-	//compute_coeff(j1, times, curra1, ab1, bc1, cg1);
+	JOINT curra1, ab1, bc1, cg1;
+	compute_coeff(j1, times, curra1, ab1, bc1, cg1);
 
-	//// cubic coefficients for theta2
-	//JOINT curra2, ab2, bc2, cg2;
-	//compute_coeff(j2, times, curra2, ab2, bc2, cg2);
+	// cubic coefficients for theta2
+	JOINT curra2, ab2, bc2, cg2;
+	compute_coeff(j2, times, curra2, ab2, bc2, cg2);
 
-	//// cubic coefficients for d3
-	//JOINT curra3, ab3, bc3, cg3;
-	//compute_coeff(j3, times, curra3, ab3, bc3, cg3);
+	// cubic coefficients for d3
+	JOINT curra3, ab3, bc3, cg3;
+	compute_coeff(j3, times, curra3, ab3, bc3, cg3);
 
-	//// cubic coefficients for theta4
-	//JOINT curra4, ab4, bc4, cg4;
-	//compute_coeff(j4, times, curra4, ab4, bc4, cg4);
+	// cubic coefficients for theta4
+	JOINT curra4, ab4, bc4, cg4;
+	compute_coeff(j4, times, curra4, ab4, bc4, cg4);
 
 
 	// cubic coefficients for theta1
-	ARR6 curra1, ab1, bc1, cg1;
-	compute_quincoeff(j1, times, curra1, ab1, bc1, cg1);
+	//ARR6 curra1, ab1, bc1, cg1;
+	//compute_quincoeff(j1, times, curra1, ab1, bc1, cg1);
 
-	// cubic coefficients for theta2
-	ARR6 curra2, ab2, bc2, cg2;
-	compute_quincoeff(j2, times, curra2, ab2, bc2, cg2);
+	//// cubic coefficients for theta2
+	//ARR6 curra2, ab2, bc2, cg2;
+	//compute_quincoeff(j2, times, curra2, ab2, bc2, cg2);
 
-	// cubic coefficients for d3
-	ARR6 curra3, ab3, bc3, cg3;
-	compute_quincoeff(j3, times, curra3, ab3, bc3, cg3);
+	//// cubic coefficients for d3
+	//ARR6 curra3, ab3, bc3, cg3;
+	//compute_quincoeff(j3, times, curra3, ab3, bc3, cg3);
 
-	// cubic coefficients for theta4
-	ARR6 curra4, ab4, bc4, cg4;
-	compute_quincoeff(j4, times, curra4, ab4, bc4, cg4);
+	//// cubic coefficients for theta4
+	//ARR6 curra4, ab4, bc4, cg4;
+	//compute_quincoeff(j4, times, curra4, ab4, bc4, cg4);
 
 	if(debug) {
 		printf("\n--Cubic Coefficients (a0, a1, a2, a3)--\n");
@@ -1701,7 +1796,8 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	return return_vals;
 }
 
-void PATHGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {
+//void PATHGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double> &pos, vector<double> &curr_time, bool isFull) {
+void PATHGEN(double ti, double tf, int sample_rate, JOINT & coeff, vector<double> &pos, vector<double> & curr_time, bool isFull) {
 	/* Computes the position of the path, theta(t)
 		Input: 
 			- ti: initial time for cubic spline
@@ -1718,30 +1814,35 @@ void PATHGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double> 
 	int num_points = (t*sample_rate) + 2; // + 2 to get the final position as well
 	for(double i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i/sample_rate);
-		pos.push_back(coeff[0] + coeff[1]*curr_time[i] + coeff[2]*pow(curr_time[i], 2) + coeff[3]*pow(curr_time[i], 3) + coeff[4]*pow(curr_time[i], 4) + coeff[5]*pow(curr_time[i], 5));
+		pos.push_back(coeff[0] + coeff[1] * curr_time[i] + coeff[2] * pow(curr_time[i], 2) + coeff[3] * pow(curr_time[i], 3));
+		//pos.push_back(coeff[0] + coeff[1]*curr_time[i] + coeff[2]*pow(curr_time[i], 2) + coeff[3]*pow(curr_time[i], 3) + coeff[4]*pow(curr_time[i], 4) + coeff[5]*pow(curr_time[i], 5));
 	}
 }
 
-void VELGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
+//void VELGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
+void VELGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull) {
 	// Computes the velocity of the path vs. time
 	// Units: rad/s
 	double t = tf - ti;
 	int num_points = (t * sample_rate) + 2; // + 2 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
-		vel.push_back(coeff[1] + 2*coeff[2]*curr_time[i] + 3*coeff[3]*pow(curr_time[i], 2) + 4*coeff[4]*pow(curr_time[i], 3) + 5*coeff[5]*pow(curr_time[i], 4));
+		vel.push_back(coeff[1] + 2 * coeff[2] * curr_time[i] + 3 * coeff[3] * pow(curr_time[i], 2));
+		//vel.push_back(coeff[1] + 2*coeff[2]*curr_time[i] + 3*coeff[3]*pow(curr_time[i], 2) + 4*coeff[4]*pow(curr_time[i], 3) + 5*coeff[5]*pow(curr_time[i], 4));
 	}
 
 }
 
-void ACCGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
+//void ACCGEN(double ti, double tf, int sample_rate, ARR6 &coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
+void ACCGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& acc, vector<double>& curr_time, bool isFull) {
 	// Computes the acceleration of the path vs. time
 	// Units: rad/s^2
 	double t = tf - ti;
 	int num_points = (t * sample_rate) + 2; // + 2 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
-		acc.push_back(2*coeff[2] +	6*coeff[3]*curr_time[i] + 12*coeff[4]*pow(curr_time[i], 2) + 20*coeff[5]*pow(curr_time[i], 3));
+		acc.push_back(2 * coeff[2] + 6 * coeff[3] * curr_time[i]);
+		//acc.push_back(2*coeff[2] +	6*coeff[3]*curr_time[i] + 12*coeff[4]*pow(curr_time[i], 2) + 20*coeff[5]*pow(curr_time[i], 3));
 	}
 }
 
