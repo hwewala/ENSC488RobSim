@@ -1327,7 +1327,7 @@ void compute_times(double& t, ARR5& j1, ARR5& j2, ARR5& j3, ARR5& j4, ARR5& time
 		}
 		int idx = (int)biggest[0];
 		if (t_changed) {
-			t = sums[idx] / lims[idx];
+			t = sums[idx] / lims[idx] + 1;
 			printf("\nRecalculated time to: %f\n", t);
 		}
 
