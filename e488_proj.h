@@ -7,6 +7,7 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
+#include <algorithm>
 
 #include "stdafx.h"
 #include "ensc-488.h"
@@ -121,7 +122,7 @@ void write_csv(string filename, vector<pair<string, vector<double>>> dataset);
 
 // Demo 2
 void CUBCOEF(double theta0, double thetaf, double vel0, double velf, double tf, JOINT &coeff);
-vector<vector<double>> PATHPLAN(double t, double vel, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
+vector<vector<double>> PATHPLAN(double t, TFORM& A, TFORM& B, TFORM& C, TFORM& G, bool debug);
 
 void PATHGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& pos, vector<double>& curr_time, bool isFull = false);
 void VELGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>& vel, vector<double>& curr_time, bool isFull = false);
@@ -143,3 +144,6 @@ void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes);
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes);
 void compute_vels(ARR4& slopes, ARR5& vels);
 void compute_accs(ARR4& slopes, ARR5& accs);
+
+void find_max(vector<double>& vec, int& idx);
+void find_min(vector<double>& vec, int& idx);

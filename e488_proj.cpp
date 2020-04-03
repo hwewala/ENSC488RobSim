@@ -394,7 +394,7 @@ void TrajPlanPos(vector<vector<double>>& traj_vals) {
 
 	// Plan the path
 	printf("Planning the Trajectory!\n");
-	traj_vals = PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	traj_vals = PATHPLAN(t, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 void TrajPlanJoint(vector<vector<double>>& traj_vals) {
@@ -484,7 +484,7 @@ void TrajPlanJoint(vector<vector<double>>& traj_vals) {
 	UTOI_FLIP(g_pos, g_mat);
 
 	printf("\nPlanning the Trajectory!\n");
-	traj_vals = PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	traj_vals = PATHPLAN(t, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 void TrajCust(vector<vector<double>>& traj_vals) {
@@ -496,8 +496,8 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	printf("Time for motion (s): %f\n", t);
 
 	// get velocity between via points
-	double vel = 5;
-	printf("Velocity between via points: %f\n", vel);
+	/*double vel = 5;
+	printf("Velocity between via points: %f\n", vel);*/
 
 	double j1a, j2a, j3a, j4a;
 	j1a = 0;
@@ -552,7 +552,7 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	UTOI_FLIP(g_pos, g_mat);
 
 	printf("\nPlanning the Trajectory!\n");
-	traj_vals = PATHPLAN(t, vel, a_mat, b_mat, c_mat, g_mat, true);
+	traj_vals = PATHPLAN(t, a_mat, b_mat, c_mat, g_mat, true);
 }
 
 void ExecutePath(vector<vector<double>> traj_vals) {
@@ -1270,7 +1270,7 @@ void compute_times(double& t, ARR5& j1, ARR5& j2, ARR5& j3, ARR5& j4, ARR5& time
 			}
 		}
 	}
-	else
+	else if (option == 2)
 	{
 		// convert arrays to a matrix
 		vector<vector<double>> vals;
@@ -1350,6 +1350,48 @@ void compute_times(double& t, ARR5& j1, ARR5& j2, ARR5& j3, ARR5& j4, ARR5& time
 				times[i] = times[i-1] + curr_len[i-1] * t / sums[idx];
 			}
 			printf("time: %f\n", times[i]);
+		}
+	}
+	else {
+		// convert arrays to a matrix
+		vector<vector<double>> vals;
+		vector<double> temp1, temp2, temp3, temp4;
+		to_vec(j1, temp1);
+		vals.push_back(temp1);
+		to_vec(j2, temp2);
+		vals.push_back(temp2);
+		to_vec(j3, temp3);
+		vals.push_back(temp3);
+		to_vec(j4, temp4);
+		vals.push_back(temp4);
+		ARR4 lims{ 2*(double)J1V_LIM, 2*(double)J2V_LIM, J3V_LIM, 2*(double)J4V_LIM };
+
+		// for each segment, find the joint that's moving the most WRT it's joint limit
+		int num_joints = 4;
+		int num_segs = 4;
+		// loop through joints
+		vector<vector<double>> ratios;
+		for (int i = 0; i < num_joints; i++) {
+			// loop through time segments
+			vector<double> joint_rat;
+			for (int j = 0; j < num_segs; j++) {
+				// compute the displacement ratio 
+				joint_rat.push_back(abs(vals[i][j+1] - vals[i][j]) / lims[i]);
+			}
+			ratios.push_back(joint_rat);
+		}
+		
+		// loop through the joint ratios and find the max ratio 
+		vector<int> max_idx;
+		for (int i = 0; i < num_segs; i++) {
+			// create the vector that we want to compare values
+			vector<double> curr_vec;
+			for (int j = 0; j < num_joints; j++) {
+				curr_vec.push_back(vals[j][i]);
+			}			
+			int idx; 
+			find_max(curr_vec, idx);
+			max_idx.push_back(idx);
 		}
 		return;
 	}
@@ -1462,7 +1504,7 @@ void get_jv(int idx, JOINT &curr_joint, JOINT &a_joint, JOINT &b_joint, JOINT &c
 	pop_arr(vals, joint);
 }
 
-vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
+vector<vector<double>> PATHPLAN(double t, TFORM &A, TFORM &B, TFORM &C, TFORM &G, bool debug) {
 	/* 	Computes the path trajectory of a given set of points (max. 5)
 		Inputs: 
 			- t: total time for motion (user-specified)
@@ -1681,7 +1723,7 @@ vector<vector<double>> PATHPLAN(double t, double vel, TFORM &A, TFORM &B, TFORM 
 	
 	// POSITION VALUES
 	vector<double> theta1_pos, theta2_pos, d3_pos, theta4_pos, curr_time;
-	int sample_rate = 10;
+	int sample_rate = 100;
 	// Theta 1
 	PATHGEN(times[0], times[1], sample_rate, curra1, theta1_pos, curr_time);
 	PATHGEN(times[1], times[2], sample_rate, ab1, theta1_pos, curr_time);
@@ -1811,7 +1853,7 @@ void PATHGEN(double ti, double tf, int sample_rate, JOINT & coeff, vector<double
 			- pos (y, t): the output positions
 	*/
 	double t = tf - ti;
-	int num_points = (t*sample_rate) + 2; // + 2 to get the final position as well
+	int num_points = (t*sample_rate) + 1; // + 2 to get the final position as well
 	for(double i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i/sample_rate);
 		pos.push_back(coeff[0] + coeff[1] * curr_time[i] + coeff[2] * pow(curr_time[i], 2) + coeff[3] * pow(curr_time[i], 3));
@@ -1824,7 +1866,7 @@ void VELGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>&
 	// Computes the velocity of the path vs. time
 	// Units: rad/s
 	double t = tf - ti;
-	int num_points = (t * sample_rate) + 2; // + 2 to get the final position as well
+	int num_points = (t * sample_rate) + 1; // + 2 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
 		vel.push_back(coeff[1] + 2 * coeff[2] * curr_time[i] + 3 * coeff[3] * pow(curr_time[i], 2));
@@ -1838,7 +1880,7 @@ void ACCGEN(double ti, double tf, int sample_rate, JOINT& coeff, vector<double>&
 	// Computes the acceleration of the path vs. time
 	// Units: rad/s^2
 	double t = tf - ti;
-	int num_points = (t * sample_rate) + 2; // + 2 to get the final position as well
+	int num_points = (t * sample_rate) + 1; // + 2 to get the final position as well
 	for(int i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i / sample_rate);
 		acc.push_back(2 * coeff[2] + 6 * coeff[3] * curr_time[i]);
@@ -1877,5 +1919,27 @@ void to_arr(vector<double>& vec, ARR4& arr) {
 	int sz = size(vec);
 	for (int i = 0; i < sz; i++) {
 		arr[i] = vec[i];
+	}
+}
+
+void find_max(vector<double>& vec, int& idx) {
+	int len = vec.size();
+	int biggest = 0;
+	for (int i = 0; i < len; i++) {
+		if (vec[i] > biggest) {
+			biggest = vec[i];
+			idx = i;
+		}
+	}
+}
+
+void find_min(vector<double>& vec, int& idx) {
+	int len = vec.size();
+	int smallest = 0;
+	for (int i = 0; i < len; i++) {
+		if (vec[i] < smallest) {
+			smallest = vec[i];
+			idx = i;
+		}
 	}
 }
