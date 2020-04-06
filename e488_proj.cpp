@@ -492,7 +492,7 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	printf("Trajectory Planning w/ (theta1, theta2, d3, theta4)\n");
 
 	// get total time of manipulator motion
-	double t = 0.5;
+	double t = 12;
 	printf("Time for motion (s): %f\n", t);
 
 	// get velocity between via points
@@ -500,10 +500,10 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 	printf("Velocity between via points: %f\n", vel);*/
 
 	double j1a, j2a, j3a, j4a;
-	j1a = 0;
+	j1a = 100;
 	j2a = 10;
-	j3a = -199;
-	j4a = 10;
+	j3a = -101;
+	j4a = -100;
 	JOINT ja{DEG2RAD(j1a), DEG2RAD(j2a), j3a, DEG2RAD(j4a)};
 	bool a_valid = false;
 	check_joints(ja, a_valid);
@@ -511,9 +511,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 
 	double j1b, j2b, j3b, j4b;
 	j1b = 90;
-	j2b = 10;
-	j3b = -101;
-	j4b = 10;
+	j2b = -90;
+	j3b = -199;
+	j4b = 100;
 	JOINT jb{DEG2RAD(j1b), DEG2RAD(j2b), j3b, DEG2RAD(j4b)};
 	bool b_valid = false;
 	check_joints(jb, b_valid);
@@ -521,9 +521,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 
 	double j1c, j2c, j3c, j4c;
 	j1c = 135;
-	j2c = 10;
-	j3c = -199;
-	j4c = 10;
+	j2c = 90;
+	j3c = -101;
+	j4c = -100;
 	JOINT jc{DEG2RAD(j1c), DEG2RAD(j2c), j3c, DEG2RAD(j4c)};
 	bool c_valid = false;
 	check_joints(jc, c_valid);
@@ -531,9 +531,9 @@ void TrajCust(vector<vector<double>>& traj_vals) {
 
 	double j1g, j2g, j3g, j4g;
 	j1g = 45;
-	j2g = 10;
-	j3g = -101;
-	j4g = 10;
+	j2g = -90;
+	j3g = -199;
+	j4g = 100;
 	JOINT jg{DEG2RAD(j1g), DEG2RAD(j2g), j3g, DEG2RAD(j4g)};
 	bool g_valid = false;
 	check_joints(jg, g_valid);
@@ -591,7 +591,7 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 		JOINT acc{ RAD2DEG(j1_acc[i]), RAD2DEG(j2_acc[i]), j3_acc[i], RAD2DEG(j4_acc[i]) };
 
 		MoveWithConfVelAcc(conf, vel, acc);
-		printf("Pos #%d: (%f, %f, %f, %f)\n", i + 1, RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]));
+		//printf("Pos #%d: (%f, %f, %f, %f)\n", i + 1, RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]));
 		//sleep for inc amount of time
 		std::this_thread::sleep_for(std::chrono::milliseconds(inc));
 	}
@@ -1244,159 +1244,91 @@ void QUINCOEF(double pos0, double posf, double vel0, double velf, double acc0, d
 
 void compute_times(double& t, ARR5& j1, ARR5& j2, ARR5& j3, ARR5& j4, ARR5& times) {
 	// computes the times at each point based on the displacement for all the joints
-	// DEBUG: This does not include displacement from joint 3
-	// from 0 -> A -> B -> C -> G
-	int option = 2;
-	
-	if (option == 1) {
-		ARR4 lens;
-		double sum = 0;
-		int sz = sizeof(lens) / sizeof(*lens);
-		for (int i = 0; i < sz; i++) {
-			lens[i] = abs(j1[i + 1] - j1[i]) + abs(j2[i + 1] - j2[i]) + 0.25 * abs(j3[i + 1] - j3[i]) + abs(j4[i + 1] - j4[i]);
-			sum += lens[i];
-		}
+	// convert arrays to a matrix
+	vector<vector<double>> vals;
+	vector<double> temp1, temp2, temp3, temp4;
+	to_vec(j1, temp1);
+	vals.push_back(temp1);
+	to_vec(j2, temp2);
+	vals.push_back(temp2);
+	to_vec(j3, temp3);
+	vals.push_back(temp3);
+	to_vec(j4, temp4);
+	vals.push_back(temp4);
+	ARR4 lims{ 2*(double)J1V_LIM, 2*(double)J2V_LIM, J3V_LIM, 2*(double)J4V_LIM };
 
-		sz = sizeof(times) / sizeof(*times);
-		for (int i = 0; i < sz; i++) {
-			if (i == 0) {
-				times[i] = 0;
-			}
-			else if (i == sz - 1) {
-				times[i] = t;
-			}
-			else {
-				times[i] = times[i - 1] + lens[i - 1] * t / sum;
-			}
+	// for each segment, find the joint that's moving the most WRT it's joint limit
+	int num_joints = 4;
+	int num_segs = 4;
+	// loop through joints
+	vector<vector<double>> ratios;
+	vector<vector<double>> distances;
+	for (int i = 0; i < num_joints; i++) {
+		// loop through time segments
+		vector<double> joint_rat;
+		vector<double> joint_dist;
+		for (int j = 0; j < num_segs; j++) {
+			// compute the displacement ratio 
+			double dist = abs(vals[i][j + 1] - vals[i][j]);
+			joint_dist.push_back(dist);
+			joint_rat.push_back(dist / lims[i]);
 		}
+		ratios.push_back(joint_rat);
+		distances.push_back(joint_dist);
 	}
-	else if (option == 2)
-	{
-		// convert arrays to a matrix
-		vector<vector<double>> vals;
-		vector<double> temp1, temp2, temp3, temp4;
-		to_vec(j1, temp1);
-		vals.push_back(temp1);
-		to_vec(j2, temp2);
-		vals.push_back(temp2);
-		to_vec(j3, temp3);
-		vals.push_back(temp3);
-		to_vec(j4, temp4);
-		vals.push_back(temp4);
-
-
-		// new method of splitting up the times 
-		// sum up the whole displacement for each joint
-		int num_points = 4;
-		ARR4 sums{ 0, 0, 0, 0 };
-		vector<vector<double>> lens;
-		for(int i = 0; i < num_points; i++) {
-			vector<double> temp;
-			for (int j = 0; j < num_points; j++) {
-				double val = abs(vals[i][j + 1] - vals[i][j]);
-				sums[i] += val;
-				temp.push_back(val);
-			}
-			lens.push_back(temp);
-		}
-
-		// compute the average velocity
-		ARR4 vels;
-		for (int i = 0; i < num_points; i++) {
-			vels[i] = sums[i] / t;
-		}
-
-		// check if average velocity is above any of the limits
-		ARR4 ratios1;
-		ARR4 lims{ J1V_LIM, J2V_LIM, J3V_LIM, J4V_LIM };
-		for (int i = 0; i < num_points; i++) {
-			ratios1[i] = vels[i] / lims[i];
-		}
 	
-		// if any of them are above the limit, increase the time so they are not above the limit
-		bool t_changed = false;
-		vector<double> biggest {0, 0};
-		ARR5 big_vals;
-		double t_new = t;
-		for (int i = 0; i < num_points; i++) {
-			if (ratios1[i] > biggest[1]) {
-				biggest[0] = i;
-				biggest[1] = ratios1[i];
-				t_changed = true;
-			}
-		}
-		int idx = (int)biggest[0];
-		if (t_changed) {
-			t = sums[idx] / lims[idx] + 1;
-			printf("\nRecalculated time to: %f\n", t);
-		}
-
-		// compute the time segment with the biggest displacement
-		ARR4 ratios;
-		double sum_len = sums[idx];
-		vector<double> curr_len = lens[idx];
-
-		int sz = sizeof(times) / sizeof(*times);
-		for (int i = 0; i < sz; i++) {
-			if (i == sz - 1) {
-				// last value
-				times[i] = t;
-			}
-			else if (i == 0) {
-				times[i] = 0;
-			}
-			else {
-				// 
-				times[i] = times[i-1] + curr_len[i-1] * t / sums[idx];
-			}
-			printf("time: %f\n", times[i]);
-		}
+	// loop through the joint ratios and find the max ratio 
+	vector<int> max_idx;
+	for (int i = 0; i < num_segs; i++) {
+		// create the vector that we want to compare values
+		vector<double> curr_vec;
+		for (int j = 0; j < num_joints; j++) {
+			curr_vec.push_back(ratios[j][i]);
+		}			
+		int idx; 
+		find_max(curr_vec, idx);
+		max_idx.push_back(idx);
 	}
+
+	// Compute the minimum amount of time without going over the maximum velocity 
+	vector<double> min_time;
+	double sum_time = 0;
+	for(int i = 0; i < num_segs; i++) {
+		double time = distances[max_idx[i]][i] / (lims[max_idx[i]] + 1);
+		min_time.push_back(time);
+		sum_time += time;
+	}
+
+	// Check if we need to change the time
+	double time_ratio = 0;
+	if(sum_time >= t) {
+		// minimum time is greater than the specified time
+		t = sum_time; // adding a +1 to keep things safe
+
+		// set the time ratio
+		time_ratio = 1;
+	} 
 	else {
-		// convert arrays to a matrix
-		vector<vector<double>> vals;
-		vector<double> temp1, temp2, temp3, temp4;
-		to_vec(j1, temp1);
-		vals.push_back(temp1);
-		to_vec(j2, temp2);
-		vals.push_back(temp2);
-		to_vec(j3, temp3);
-		vals.push_back(temp3);
-		to_vec(j4, temp4);
-		vals.push_back(temp4);
-		ARR4 lims{ 2*(double)J1V_LIM, 2*(double)J2V_LIM, J3V_LIM, 2*(double)J4V_LIM };
-
-		// for each segment, find the joint that's moving the most WRT it's joint limit
-		int num_joints = 4;
-		int num_segs = 4;
-		// loop through joints
-		vector<vector<double>> ratios;
-		for (int i = 0; i < num_joints; i++) {
-			// loop through time segments
-			vector<double> joint_rat;
-			for (int j = 0; j < num_segs; j++) {
-				// compute the displacement ratio 
-				joint_rat.push_back(abs(vals[i][j+1] - vals[i][j]) / lims[i]);
-			}
-			ratios.push_back(joint_rat);
-		}
-		
-		// loop through the joint ratios and find the max ratio 
-		vector<int> max_idx;
-		for (int i = 0; i < num_segs; i++) {
-			// create the vector that we want to compare values
-			vector<double> curr_vec;
-			for (int j = 0; j < num_joints; j++) {
-				curr_vec.push_back(vals[j][i]);
-			}			
-			int idx; 
-			find_max(curr_vec, idx);
-			max_idx.push_back(idx);
-		}
-		return;
+		// minimum time is less than the specified time 
+		// calculate the ratio to increase each time segment 
+		time_ratio = t/sum_time;
 	}
 
-	// 0 a b c g
+	// Compute the time segment for each via point
+	vector<double> time_segs;
+	for(int i = 0; i < num_segs; i++) {
+		time_segs.push_back(time_ratio * min_time[i]);
+	}
+
+	// check if velocity limit is met
+
+
+	// Compute the time that's used for the robot
+	times[0] = 0;
+	for(int i = 1; i < num_segs+1; i++) {
+		times[i] = times[i-1] + time_segs[i-1];
+	}	
+	
 	return;
 }
 
@@ -1425,39 +1357,6 @@ void compute_coeff(ARR5& j, ARR5& times, JOINT& curra, JOINT& ab, JOINT& bc, JOI
 	// C -> G
 	CUBCOEF(j[3], j[4], vels[3], vels[4], t_seg[3], cg);
 }
-
-//void compute_quincoeff(ARR5& j, ARR5& times, ARR6& curra, ARR6& ab, ARR6& bc, ARR6& cg) {
-//	// computes the quintic coefficients
-//	ARR4 slopes;
-//	ARR4 t_seg{ times[1] - times[0], times[2] - times[1], times[3] - times[2], times[4] - times[3] };
-//	
-//	ARR5 vels, accs;
-//	// the velocities at the via points, vel at start and end equal 0
-//	compute_slopes(times, j, slopes);
-//	compute_vels(slopes, vels);
-//
-//	// the accelerations at the via points, acc at start and end equal 0 
-//	ARR4 vslopes;
-//	compute_slopes(times, vels, vslopes);
-//	compute_accs(vslopes, accs);
-//
-//	printf("vel at vias\n");
-//	print(vels);
-//	printf("acc at vias\n");
-//	print(accs);
-//
-//	// curr -> A
-//	QUINCOEF(j[0], j[1], vels[0], vels[1], accs[0], accs[1], t_seg[0], curra);
-//	
-//	// A -> B
-//	QUINCOEF(j[1], j[2], vels[1], vels[2], accs[1], accs[2], t_seg[1], ab);
-//
-//	// B -> C
-//	QUINCOEF(j[2], j[3], vels[2], vels[3], accs[2], accs[3], t_seg[2], bc);
-//
-//	// C -> G
-//	QUINCOEF(j[3], j[4], vels[3], vels[4], accs[3], accs[4], t_seg[3], cg);
-//}
 
 void compute_slopes(ARR5 &t, ARR5 &j, ARR4 &slopes) {
 	// computes the slope of the line segment
@@ -1723,7 +1622,7 @@ vector<vector<double>> PATHPLAN(double t, TFORM &A, TFORM &B, TFORM &C, TFORM &G
 	
 	// POSITION VALUES
 	vector<double> theta1_pos, theta2_pos, d3_pos, theta4_pos, curr_time;
-	int sample_rate = 100;
+	int sample_rate = 500;
 	// Theta 1
 	PATHGEN(times[0], times[1], sample_rate, curra1, theta1_pos, curr_time);
 	PATHGEN(times[1], times[2], sample_rate, ab1, theta1_pos, curr_time);
