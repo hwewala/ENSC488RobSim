@@ -327,10 +327,10 @@ void TrajPlanPos(vector<vector<double>>& traj_vals) {
 	printf("Time for motion (s): ");
 	cin >> t;
 
-	// get velocity between via points
-	double vel;
-	printf("Velocity between via points: ");
-	cin >> vel;
+	//// get velocity between via points
+	//double vel;
+	//printf("Velocity between via points: ");
+	//cin >> vel;
 
 	// get set of points
 	double xa, ya, za, phia;
@@ -406,10 +406,10 @@ void TrajPlanJoint(vector<vector<double>>& traj_vals) {
 	printf("Time for motion (s): ");
 	cin >> t;
 
-	// get velocity between via points
-	double vel;
-	printf("Velocity between via points: ");
-	cin >> vel;
+	//// get velocity between via points
+	//double vel;
+	//printf("Velocity between via points: ");
+	//cin >> vel;
 
 	double j1a, j2a, j3a, j4a;
 	printf("\nA:\n");
@@ -594,6 +594,7 @@ void ExecutePath(vector<vector<double>> traj_vals) {
 		//printf("Pos #%d: (%f, %f, %f, %f)\n", i + 1, RAD2DEG(j1_pos[i]), RAD2DEG(j2_pos[i]), j3_pos[i], RAD2DEG(j4_pos[i]));
 		//sleep for inc amount of time
 		std::this_thread::sleep_for(std::chrono::milliseconds(inc));
+		continue;
 	}
 	StopRobot();
 	ResetRobot();
@@ -1535,7 +1536,7 @@ vector<vector<double>> PATHPLAN(double t, TFORM &A, TFORM &B, TFORM &C, TFORM &G
 	compute_times(t, j1, j2, j3, j4, times);
 
 	if (debug) {
-		printf("time segments: ");
+		printf("time segments:  ");
 		print(times);
 	}
 
@@ -1756,7 +1757,6 @@ void PATHGEN(double ti, double tf, int sample_rate, JOINT & coeff, vector<double
 	for(double i = 0; i < num_points; i++) {
 		if (isFull == false) curr_time.push_back(ti + i/sample_rate);
 		pos.push_back(coeff[0] + coeff[1] * curr_time[i] + coeff[2] * pow(curr_time[i], 2) + coeff[3] * pow(curr_time[i], 3));
-		//pos.push_back(coeff[0] + coeff[1]*curr_time[i] + coeff[2]*pow(curr_time[i], 2) + coeff[3]*pow(curr_time[i], 3) + coeff[4]*pow(curr_time[i], 4) + coeff[5]*pow(curr_time[i], 5));
 	}
 }
 
