@@ -1246,89 +1246,98 @@ void QUINCOEF(double pos0, double posf, double vel0, double velf, double acc0, d
 void compute_times(double& t, ARR5& j1, ARR5& j2, ARR5& j3, ARR5& j4, ARR5& times) {
 	// computes the times at each point based on the displacement for all the joints
 	// convert arrays to a matrix
-	vector<vector<double>> vals;
-	vector<double> temp1, temp2, temp3, temp4;
-	to_vec(j1, temp1);
-	vals.push_back(temp1);
-	to_vec(j2, temp2);
-	vals.push_back(temp2);
-	to_vec(j3, temp3);
-	vals.push_back(temp3);
-	to_vec(j4, temp4);
-	vals.push_back(temp4);
-	ARR4 lims{ 2*(double)J1V_LIM, 2*(double)J2V_LIM, J3V_LIM, 2*(double)J4V_LIM };
 
-	// for each segment, find the joint that's moving the most WRT it's joint limit
-	int num_joints = 4;
-	int num_segs = 4;
-	// loop through joints
-	vector<vector<double>> ratios;
-	vector<vector<double>> distances;
-	for (int i = 0; i < num_joints; i++) {
-		// loop through time segments
-		vector<double> joint_rat;
-		vector<double> joint_dist;
-		for (int j = 0; j < num_segs; j++) {
-			// compute the displacement ratio 
-			double dist = abs(vals[i][j + 1] - vals[i][j]);
-			joint_dist.push_back(dist);
-			joint_rat.push_back(dist / lims[i]);
-		}
-		ratios.push_back(joint_rat);
-		distances.push_back(joint_dist);
-	}
-	
-	// loop through the joint ratios and find the max ratio 
-	vector<int> max_idx;
-	for (int i = 0; i < num_segs; i++) {
-		// create the vector that we want to compare values
-		vector<double> curr_vec;
-		for (int j = 0; j < num_joints; j++) {
-			curr_vec.push_back(ratios[j][i]);
-		}			
-		int idx; 
-		find_max(curr_vec, idx);
-		max_idx.push_back(idx);
-	}
+	double t_inc = t / 4;
+	ARR5 temp{ t_inc * 0, t_inc * 1, t_inc * 2, t_inc * 3, t_inc * 4 };
+	times[0] = temp[0];
+	times[1] = temp[1];
+	times[2] = temp[2];
+	times[3] = temp[3];
+	times[4] = temp[4];
 
-	// Compute the minimum amount of time without going over the maximum velocity 
-	vector<double> min_time;
-	double sum_time = 0;
-	for(int i = 0; i < num_segs; i++) {
-		double time = distances[max_idx[i]][i] / (lims[max_idx[i]] + 1);
-		min_time.push_back(time);
-		sum_time += time;
-	}
+	//vector<vector<double>> vals;
+	//vector<double> temp1, temp2, temp3, temp4;
+	//to_vec(j1, temp1);
+	//vals.push_back(temp1);
+	//to_vec(j2, temp2);
+	//vals.push_back(temp2);
+	//to_vec(j3, temp3);
+	//vals.push_back(temp3);
+	//to_vec(j4, temp4);
+	//vals.push_back(temp4);
+	//ARR4 lims{ 2*(double)J1V_LIM, 2*(double)J2V_LIM, J3V_LIM, 2*(double)J4V_LIM };
 
-	// Check if we need to change the time
-	double time_ratio = 0;
-	if(sum_time >= t) {
-		// minimum time is greater than the specified time
-		t = sum_time; // adding a +1 to keep things safe
+	//// for each segment, find the joint that's moving the most WRT it's joint limit
+	//int num_joints = 4;
+	//int num_segs = 4;
+	//// loop through joints
+	//vector<vector<double>> ratios;
+	//vector<vector<double>> distances;
+	//for (int i = 0; i < num_joints; i++) {
+	//	// loop through time segments
+	//	vector<double> joint_rat;
+	//	vector<double> joint_dist;
+	//	for (int j = 0; j < num_segs; j++) {
+	//		// compute the displacement ratio 
+	//		double dist = abs(vals[i][j + 1] - vals[i][j]);
+	//		joint_dist.push_back(dist);
+	//		joint_rat.push_back(dist / lims[i]);
+	//	}
+	//	ratios.push_back(joint_rat);
+	//	distances.push_back(joint_dist);
+	//}
+	//
+	//// loop through the joint ratios and find the max ratio 
+	//vector<int> max_idx;
+	//for (int i = 0; i < num_segs; i++) {
+	//	// create the vector that we want to compare values
+	//	vector<double> curr_vec;
+	//	for (int j = 0; j < num_joints; j++) {
+	//		curr_vec.push_back(ratios[j][i]);
+	//	}			
+	//	int idx; 
+	//	find_max(curr_vec, idx);
+	//	max_idx.push_back(idx);
+	//}
 
-		// set the time ratio
-		time_ratio = 1;
-	} 
-	else {
-		// minimum time is less than the specified time 
-		// calculate the ratio to increase each time segment 
-		time_ratio = t/sum_time;
-	}
+	//// Compute the minimum amount of time without going over the maximum velocity 
+	//vector<double> min_time;
+	//double sum_time = 0;
+	//for(int i = 0; i < num_segs; i++) {
+	//	double time = distances[max_idx[i]][i] / (lims[max_idx[i]] + 1);
+	//	min_time.push_back(time);
+	//	sum_time += time;
+	//}
 
-	// Compute the time segment for each via point
-	vector<double> time_segs;
-	for(int i = 0; i < num_segs; i++) {
-		time_segs.push_back(time_ratio * min_time[i]);
-	}
+	//// Check if we need to change the time
+	//double time_ratio = 0;
+	//if(sum_time >= t) {
+	//	// minimum time is greater than the specified time
+	//	t = sum_time; // adding a +1 to keep things safe
 
-	// check if velocity limit is met
+	//	// set the time ratio
+	//	time_ratio = 1;
+	//} 
+	//else {
+	//	// minimum time is less than the specified time 
+	//	// calculate the ratio to increase each time segment 
+	//	time_ratio = t/sum_time;
+	//}
+
+	//// Compute the time segment for each via point
+	//vector<double> time_segs;
+	//for(int i = 0; i < num_segs; i++) {
+	//	time_segs.push_back(time_ratio * min_time[i]);
+	//}
+
+	//// check if velocity limit is met
 
 
-	// Compute the time that's used for the robot
-	times[0] = 0;
-	for(int i = 1; i < num_segs+1; i++) {
-		times[i] = times[i-1] + time_segs[i-1];
-	}	
+	//// Compute the time that's used for the robot
+	//times[0] = 0;
+	//for(int i = 1; i < num_segs+1; i++) {
+	//	times[i] = times[i-1] + time_segs[i-1];
+	//}	
 	
 	return;
 }
