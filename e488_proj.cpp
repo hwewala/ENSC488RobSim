@@ -64,8 +64,8 @@ void main(void) {
 				ToggleGripper(gripper_status);
 				break;
 			case 7 : // MoveToConfig
-				//SimpleMove();
-				Move();
+				SimpleMove();
+				//Move();
 				break;
 			case 8 : // Custom
 				traj_vals.clear();
